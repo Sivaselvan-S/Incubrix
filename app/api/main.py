@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import health
+from app.api.routes import health, preflight
 from app.config import get_settings
 from app.db.session import init_db
 from app.logging import correlation_id_ctx, get_logger, setup_logging
@@ -93,3 +93,4 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
 # Mount core routes
 app.include_router(health.router)
+app.include_router(preflight.router)

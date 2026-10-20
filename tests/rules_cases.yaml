@@ -1,0 +1,313 @@
+# Table-driven test cases for Preflight Court
+# Target: 0 rule violations missed
+
+cases:
+  # ----------------------------------------------------------------------------
+  # Check 1: Connector status & Circuit Breaker
+  # ----------------------------------------------------------------------------
+  - id: "TC01_connector_disabled"
+    description: "Kill switch disabled connector blocks immediately"
+    rendition: { title: "Hello", body: "World" }
+    destination: { connector_enabled: false }
+    expected_verdict: "BLOCK"
+    expected_code: "CONNECTOR_DISABLED"
+
+  - id: "TC02_circuit_breaker_open"
+    description: "Open circuit breaker blocks with PLATFORM_UNAVAILABLE"
+    rendition: { title: "Hello", body: "World" }
+    destination: { circuit_open: true }
+    expected_verdict: "BLOCK"
+    expected_code: "PLATFORM_UNAVAILABLE"
+
+  # ----------------------------------------------------------------------------
+  # Check 2: Destination Status & Passport Expiry
+  # ----------------------------------------------------------------------------
+  - id: "TC03_destination_demoted_status"
+    description: "Demoted destination status blocks with DESTINATION_DEMOTED"
+    rendition: { title: "Hello", body: "World" }
+    destination: { destination_status: "demoted" }
+    expected_verdict: "BLOCK"
+    expected_code: "DESTINATION_DEMOTED"
+
+  - id: "TC04_destination_disabled_status"
+    description: "Disabled destination status blocks with DESTINATION_DEMOTED"
+    rendition: { title: "Hello", body: "World" }
+    destination: { destination_status: "disabled" }
+    expected_verdict: "BLOCK"
+    expected_code: "DESTINATION_DEMOTED"
+
+  - id: "TC05_passport_expired"
+    description: "Expired passport blocks with DESTINATION_DEMOTED"
+    rendition: { title: "Hello", body: "World" }
+    destination: { passport_expired: true }
+    expected_verdict: "BLOCK"
+    expected_code: "DESTINATION_DEMOTED"
+
+  # ----------------------------------------------------------------------------
+  # Check 3: Automation Allowed
+  # ----------------------------------------------------------------------------
+  - id: "TC06_automation_prohibited"
+    description: "Manual-only platform routes to ASSIST verdict"
+    rendition: { title: "Hello", body: "World" }
+    destination: { automation_allowed: false }
+    expected_verdict: "ASSIST"
+    expected_code: "ASSISTED_TIER_REQUIRED"
+
+  # ----------------------------------------------------------------------------
+  # Check 4: Surface Format Limits & Auto-Fixes
+  # ----------------------------------------------------------------------------
+  - id: "TC07_unsupported_media_type"
+    description: "Media type outside allowed types blocks with DEST_SPEC_VIOLATION"
+    rendition: { title: "Video Post", body: "Check this out", media: ["video/mp4"] }
+    surface_spec: { allowed_media_types: ["image/png", "image/jpeg"] }
+    expected_verdict: "BLOCK"
+    expected_code: "DEST_SPEC_VIOLATION"
+
+  - id: "TC08_supported_media_type"
+    description: "Allowed media type passes"
+    rendition: { title: "Photo Post", body: "Check this image", media: ["image/png"] }
+    surface_spec: { allowed_media_types: ["image/png", "image/jpeg"] }
+    expected_verdict: "ALLOW"
+
+  - id: "TC09_links_not_allowed_on_surface"
+    description: "Surface forbidding links blocks when links present"
+    rendition: { title: "Link Post", body: "Here is link", links: ["https://example.com"] }
+    surface_spec: { links_allowed: false }
+    expected_verdict: "BLOCK"
+    expected_code: "DEST_SPEC_VIOLATION"
+
+  - id: "TC10_title_exact_boundary"
+    description: "Title length exactly at maximum passes without rewrite"
+    rendition: { title: "1234567890", body: "Valid body text" }
+    surface_spec: { max_title_chars: 10 }
+    expected_verdict: "ALLOW"
+
+  - id: "TC11_title_one_char_over_boundary"
+    description: "Title 1 char over limit triggers REWRITE with word truncation"
+    rendition: { title: "123456 8901", body: "Valid body text" }
+    surface_spec: { max_title_chars: 10 }
+    expected_verdict: "REWRITE"
+
+  - id: "TC12_title_word_boundary_truncation"
+    description: "Title truncates cleanly at word boundary rather than cutting word"
+    rendition: { title: "Comprehensive Deep Dive into Distributed Systems", body: "Body" }
+    surface_spec: { max_title_chars: 30 }
+    expected_verdict: "REWRITE"
+
+  - id: "TC13_body_exact_boundary"
+    description: "Body length exactly at limit passes without rewrite"
+    rendition: { title: "Title", body: "Exact 20 chars body!" }
+    surface_spec: { max_body_chars: 20 }
+    expected_verdict: "ALLOW"
+
+  - id: "TC14_body_one_char_over_boundary"
+    description: "Body 1 char over limit triggers REWRITE"
+    rendition: { title: "Title", body: "Exact 20 chars body!+" }
+    surface_spec: { max_body_chars: 20 }
+    expected_verdict: "REWRITE"
+
+  - id: "TC15_body_word_boundary_truncation"
+    description: "Long body text truncates with ellipsis at word boundary"
+    rendition: { title: "Title", body: "The quick brown fox jumps over the lazy dog" }
+    surface_spec: { max_body_chars: 25 }
+    expected_verdict: "REWRITE"
+
+  # ----------------------------------------------------------------------------
+  # Check 5: Self-Promotion Policy
+  # ----------------------------------------------------------------------------
+  - id: "TC16_promo_blocked_when_prohibited"
+    description: "Promotional post to no-promo destination blocks with DEST_RULE_PROMO_BLOCKED"
+    rendition: { title: "Buy our product", body: "Discount code inside", is_promotional: true }
+    destination: { self_promo_allowed: false }
+    expected_verdict: "BLOCK"
+    expected_code: "DEST_RULE_PROMO_BLOCKED"
+
+  - id: "TC17_non_promo_allowed_when_promo_prohibited"
+    description: "Educational / non-promo post allowed when promo prohibited"
+    rendition: { title: "How DNS works", body: "A guide on resolvers", is_promotional: false }
+    destination: { self_promo_allowed: false }
+    expected_verdict: "ALLOW"
+
+  - id: "TC18_promo_allowed_when_permitted"
+    description: "Promotional post passes when destination permits self-promotion"
+    rendition: { title: "Launch of v2.0", body: "Try our new release", is_promotional: true }
+    destination: { self_promo_allowed: true }
+    expected_verdict: "ALLOW"
+
+  # ----------------------------------------------------------------------------
+  # Check 6: Link Policy
+  # ----------------------------------------------------------------------------
+  - id: "TC19_shortener_bitly_blocked"
+    description: "Bit.ly link blocked under no_shorteners policy"
+    rendition: { title: "Title", body: "Link", links: ["https://bit.ly/3XYZ123"] }
+    destination: { link_policy: "no_shorteners" }
+    expected_verdict: "BLOCK"
+    expected_code: "DEST_RULE_LINK_POLICY"
+
+  - id: "TC20_shortener_tinyurl_blocked"
+    description: "TinyURL link blocked under no_shorteners policy"
+    rendition: { title: "Title", body: "Link", links: ["https://tinyurl.com/abc1234"] }
+    destination: { link_policy: "no_shorteners" }
+    expected_verdict: "BLOCK"
+    expected_code: "DEST_RULE_LINK_POLICY"
+
+  - id: "TC21_shortener_tco_blocked"
+    description: "t.co shortener link blocked under no_shorteners policy"
+    rendition: { title: "Title", body: "Link", links: ["http://t.co/abcXYZ"] }
+    destination: { link_policy: "no_shorteners" }
+    expected_verdict: "BLOCK"
+    expected_code: "DEST_RULE_LINK_POLICY"
+
+  - id: "TC22_direct_link_allowed_under_no_shorteners"
+    description: "Legitimate direct URL allowed under no_shorteners policy"
+    rendition: { title: "Title", body: "Link", links: ["https://github.com/incubrix/project"] }
+    destination: { link_policy: "no_shorteners" }
+    expected_verdict: "ALLOW"
+
+  - id: "TC23_max_n_links_within_limit"
+    description: "1 link provided when limit is 1 passes"
+    rendition: { title: "Title", body: "Link", links: ["https://example.com/one"] }
+    destination: { link_policy: "max_n", link_policy_config: { max_links: 1 } }
+    expected_verdict: "ALLOW"
+
+  - id: "TC24_max_n_links_one_over_limit"
+    description: "2 links provided when limit is 1 blocks"
+    rendition: { title: "Title", body: "Link", links: ["https://example.com/1", "https://example.com/2"] }
+    destination: { link_policy: "max_n", link_policy_config: { max_links: 1 } }
+    expected_verdict: "BLOCK"
+    expected_code: "DEST_RULE_LINK_POLICY"
+
+  - id: "TC25_max_n_links_multi_allow"
+    description: "3 links provided when limit is 3 passes"
+    rendition: { title: "Title", body: "Link", links: ["https://a.com", "https://b.com", "https://c.com"] }
+    destination: { link_policy: "max_n", link_policy_config: { max_links: 3 } }
+    expected_verdict: "ALLOW"
+
+  - id: "TC26_domain_allowlist_matching"
+    description: "Link to allowlisted domain passes"
+    rendition: { title: "Title", body: "Link", links: ["https://incubrix.com/blog"] }
+    destination: { link_policy: "domain_allowlist", link_policy_config: { allowed_domains: ["incubrix.com"] } }
+    expected_verdict: "ALLOW"
+
+  - id: "TC27_domain_allowlist_subdomain"
+    description: "Subdomain of allowlisted domain passes"
+    rendition: { title: "Title", body: "Link", links: ["https://docs.incubrix.com/api"] }
+    destination: { link_policy: "domain_allowlist", link_policy_config: { allowed_domains: ["incubrix.com"] } }
+    expected_verdict: "ALLOW"
+
+  - id: "TC28_domain_allowlist_unauthorized_domain"
+    description: "Link to non-allowlisted domain blocks"
+    rendition: { title: "Title", body: "Link", links: ["https://spamsite.org/click"] }
+    destination: { link_policy: "domain_allowlist", link_policy_config: { allowed_domains: ["incubrix.com"] } }
+    expected_verdict: "BLOCK"
+    expected_code: "DEST_RULE_LINK_POLICY"
+
+  # ----------------------------------------------------------------------------
+  # Check 7: AI Disclosure Requirement
+  # ----------------------------------------------------------------------------
+  - id: "TC29_ai_disclosure_appended"
+    description: "AI generated content gets transparency note appended via REWRITE"
+    rendition: { title: "Title", body: "AI wrote this analysis.", ai_generated: true }
+    destination: { disclosure_required: true }
+    expected_verdict: "REWRITE"
+
+  - id: "TC30_ai_disclosure_not_needed_for_human_post"
+    description: "Human authored post requires no AI disclosure"
+    rendition: { title: "Title", body: "Human wrote this analysis.", ai_generated: false }
+    destination: { disclosure_required: true }
+    expected_verdict: "ALLOW"
+
+  - id: "TC31_ai_disclosure_already_present"
+    description: "If body already contains the disclosure notice, passes as ALLOW"
+    rendition:
+      title: "Title"
+      body: "My analysis.\n\n*Transparency Note: This post was prepared with AI assistance and reviewed by a human.*"
+      ai_generated: true
+    destination: { disclosure_required: true }
+    expected_verdict: "ALLOW"
+
+  - id: "TC32_ai_disclosure_body_overflow"
+    description: "When body is at max length, disclosure cannot fit -> BLOCKS DEST_RULE_AI_DISCLOSURE_REQUIRED"
+    rendition: { title: "Title", body: "12345678901234567890", ai_generated: true }
+    destination: { disclosure_required: true }
+    surface_spec: { max_body_chars: 25 }
+    expected_verdict: "BLOCK"
+    expected_code: "DEST_RULE_AI_DISCLOSURE_REQUIRED"
+
+  # ----------------------------------------------------------------------------
+  # Check 8: Frequency Cap
+  # ----------------------------------------------------------------------------
+  - id: "TC33_frequency_cap_no_history"
+    description: "No past posts passes frequency cap"
+    rendition: { title: "Title", body: "Body" }
+    destination: { frequency_cap: { max: 1, per_days: 7 } }
+    history_days_ago: []
+    expected_verdict: "ALLOW"
+
+  - id: "TC34_frequency_cap_old_post_outside_window"
+    description: "Past post 8 days ago on a 7-day cap passes"
+    rendition: { title: "Title", body: "Body" }
+    destination: { frequency_cap: { max: 1, per_days: 7 } }
+    history_days_ago: [8]
+    expected_verdict: "ALLOW"
+
+  - id: "TC35_frequency_cap_post_within_window"
+    description: "Past post 3 days ago on a 1-post/7-day cap causes RESCHEDULE"
+    rendition: { title: "Title", body: "Body" }
+    destination: { frequency_cap: { max: 1, per_days: 7 } }
+    history_days_ago: [3]
+    expected_verdict: "RESCHEDULE"
+    expected_code: "DEST_RULE_FREQUENCY_CAP"
+
+  - id: "TC36_frequency_cap_multi_max_allowed"
+    description: "1 past post on a 2-post/7-day cap passes"
+    rendition: { title: "Title", body: "Body" }
+    destination: { frequency_cap: { max: 2, per_days: 7 } }
+    history_days_ago: [2]
+    expected_verdict: "ALLOW"
+
+  - id: "TC37_frequency_cap_multi_max_exceeded"
+    description: "2 past posts on a 2-post/7-day cap causes RESCHEDULE"
+    rendition: { title: "Title", body: "Body" }
+    destination: { frequency_cap: { max: 2, per_days: 7 } }
+    history_days_ago: [1, 3]
+    expected_verdict: "RESCHEDULE"
+    expected_code: "DEST_RULE_FREQUENCY_CAP"
+
+  - id: "TC38_frequency_cap_monthly_limit"
+    description: "3 past posts on a 3-post/30-day cap causes RESCHEDULE"
+    rendition: { title: "Title", body: "Body" }
+    destination: { frequency_cap: { max: 3, per_days: 30 } }
+    history_days_ago: [5, 10, 20]
+    expected_verdict: "RESCHEDULE"
+    expected_code: "DEST_RULE_FREQUENCY_CAP"
+
+  # ----------------------------------------------------------------------------
+  # Language and Edge Combinations
+  # ----------------------------------------------------------------------------
+  - id: "TC39_language_mismatch_warning"
+    description: "Foreign language destination triggers warning without blocking"
+    rendition: { title: "Hello", body: "World", language: "en" }
+    destination: { language: "es" }
+    expected_verdict: "ALLOW"
+    expected_warning_substr: "Destination expects language 'es'"
+
+  - id: "TC40_language_matching_foreign"
+    description: "Matching foreign language passes with no warning"
+    rendition: { title: "Hola", body: "Mundo", language: "es" }
+    destination: { language: "es" }
+    expected_verdict: "ALLOW"
+
+  - id: "TC41_circuit_breaker_overrides_other_checks"
+    description: "Circuit breaker blocks even if content has format violations"
+    rendition: { title: "Very long title exceeding limit", body: "Body", media: ["audio/mp3"] }
+    destination: { circuit_open: true }
+    surface_spec: { max_title_chars: 10, allowed_media_types: ["image/png"] }
+    expected_verdict: "BLOCK"
+    expected_code: "PLATFORM_UNAVAILABLE"
+
+  - id: "TC42_both_title_and_body_truncated"
+    description: "Both title and body truncate simultaneously when both exceed limits"
+    rendition: { title: "Long title exceeding max characters", body: "Long body exceeding max characters" }
+    surface_spec: { max_title_chars: 15, max_body_chars: 15 }
+    expected_verdict: "REWRITE"
