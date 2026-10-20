@@ -1,0 +1,110 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: longtail-db
+    environment:
+      POSTGRES_USER: incubrix
+      POSTGRES_PASSWORD: incubrix_secret
+      POSTGRES_DB: longtail_passport
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U incubrix -d longtail_passport"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:RELEASE.2024-08-17T01-24-54Z
+    container_name: longtail-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mockhub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: longtail-mockhub
+    command: uvicorn mockhub.app:app --host 0.0.0.0 --port 8010
+    ports:
+      - "8010:8010"
+    environment:
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8010/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: longtail-api
+    command: uvicorn app.api.main:app --host 0.0.0.0 --port 8000
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      mockhub:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+psycopg://incubrix:incubrix_secret@db:5432/longtail_passport
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=passport-evidence
+      - MINIO_SECURE=false
+      - MOCKHUB_URL=http://mockhub:8010
+      - SIMULATION_MODE=true
+      - LLM_PROVIDER=mock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: longtail-worker
+    command: python -m app.queue.worker
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      mockhub:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql+psycopg://incubrix:incubrix_secret@db:5432/longtail_passport
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=passport-evidence
+      - MINIO_SECURE=false
+      - MOCKHUB_URL=http://mockhub:8010
+      - SIMULATION_MODE=true
+      - LLM_PROVIDER=mock
+
+volumes:
+  pgdata:
+  miniodata:
