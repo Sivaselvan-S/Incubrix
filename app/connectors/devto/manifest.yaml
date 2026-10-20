@@ -1,0 +1,28 @@
+key: devto
+version: 1.0.0
+tier: native
+auth:
+  type: api_key
+  header: api-key
+surfaces:
+  article:
+    max_title_chars: 128
+    max_body_chars: 100000
+    max_tags: 4
+    links_allowed: true
+    supports_canonical_url: true
+rate_limits:
+  max_per_minute: 30
+capabilities:
+  can_publish: true
+  can_delete: true # Implemented via PUT unpublish (honest Forem limitation)
+  can_get_status: true
+  can_fetch_metrics: true
+error_map:
+  "422": PLATFORM_CONTENT_REJECTED
+  "429": PLATFORM_RATE_LIMIT
+  "401": CONNECTION_AUTH_EXPIRED
+  "504": PLATFORM_UNAVAILABLE
+response_schema_ref:
+  publish: schemas/devto/publish.json
+  get_status: schemas/devto/get_status.json

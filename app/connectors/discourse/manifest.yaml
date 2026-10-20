@@ -1,0 +1,30 @@
+key: discourse
+version: 1.0.0
+tier: native
+instance_param: base_url
+auth:
+  type: api_key
+  headers:
+    key: Api-Key
+    username: Api-Username
+surfaces:
+  forum:
+    max_title_chars: 255
+    max_body_chars: 32000
+    links_allowed: true
+rate_limits:
+  max_per_minute: 20
+capabilities:
+  can_publish: true
+  can_delete: true
+  can_get_status: true
+  can_fetch_metrics: true
+error_map:
+  "422": PLATFORM_CONTENT_REJECTED
+  "429": PLATFORM_RATE_LIMIT
+  "401": CONNECTION_AUTH_EXPIRED
+  "403": CONNECTION_AUTH_EXPIRED
+  "504": PLATFORM_UNAVAILABLE
+response_schema_ref:
+  publish: schemas/discourse/publish.json
+  get_status: schemas/discourse/get_status.json

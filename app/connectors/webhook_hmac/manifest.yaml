@@ -1,0 +1,24 @@
+key: webhook_hmac
+version: 1.0.0
+tier: bridge
+auth:
+  type: hmac_sha256
+  secret_header: X-IncuBrix-Signature
+surfaces:
+  default:
+    max_title_chars: 500
+    max_body_chars: 50000
+    links_allowed: true
+rate_limits:
+  max_per_minute: 60
+capabilities:
+  can_publish: true
+  can_delete: true
+  can_get_status: true
+error_map:
+  "403": CONNECTION_AUTH_EXPIRED
+  "401": CONNECTION_AUTH_EXPIRED
+  "429": PLATFORM_RATE_LIMIT
+  "504": PLATFORM_UNAVAILABLE
+response_schema_ref:
+  publish: schemas/webhook_hmac/publish.json

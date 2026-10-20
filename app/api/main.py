@@ -24,7 +24,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Startup and shutdown lifecycle management."""
     logger.info("Initializing database schema...")
     init_db()
-    logger.info("Application startup complete.")
+    from app.connectors.init_connectors import register_all_connectors
+
+    register_all_connectors()
+    logger.info("Connectors registered and application startup complete.")
     yield
     logger.info("Application shutting down.")
 

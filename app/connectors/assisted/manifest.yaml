@@ -1,0 +1,18 @@
+key: assisted
+version: 1.0.0
+tier: assisted
+auth:
+  type: none
+surfaces:
+  default:
+    max_title_chars: 300
+    max_body_chars: 10000
+    links_allowed: true
+capabilities:
+  can_publish: false
+  can_delete: false
+  can_get_status: false
+  can_build_assist_pack: true
+error_map: {}
+response_schema_ref:
+  pack: schemas/assisted/pack.json

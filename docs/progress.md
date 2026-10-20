@@ -10,7 +10,7 @@ This document tracks completed milestones, test proofs, and metrics for the fina
 | Phase 2: Preflight Court | Completed | Table-driven pytest 42 scenarios + API endpoint (43 passed in 0.20s), 0 missed violations | None |
 | Phase 3: Connector Base & Runtime | Completed | Pytest (7 passed in 0.11s), Ruff (all checks passed), dynamic dispatch verified | None |
 | Phase 4: Idempotency & Job Queue | Completed | Pytest (6 passed in 0.11s), Ruff (all checks passed), ledger and worker verified | None |
-| Phase 5: Chaos Mock Hub & Core Connectors | Planned | Pending Phase 4 | None |
+| Phase 5: Chaos Mock Hub & Core Connectors | Completed | Pytest (6 passed in 0.17s), Ruff (all checks passed), all 4 connectors & faults verified | None |
 | Phase 6: Drift Canary & Certification | Planned | Pending Phase 5 | None |
 | Phase 7: Real Instances & Extra Connectors | Planned | Pending Phase 6 | None |
 | Phase 8: Tailoring, Catalogue & Rules Capture | Planned | Pending Phase 7 | None |
@@ -43,3 +43,9 @@ This document tracks completed milestones, test proofs, and metrics for the fina
   - Invisible reconciliation marker `<!-- ibx:<idempotency_key> -->` embedded in content body.
   - Output manifest with 10 standard keys generated for every result.
   - Webhook callback with HMAC-SHA256 signature in `X-IncuBrix-Signature` header verified.
+- **Phase 5: Chaos Mock Hub & Core Connectors (Verified)**:
+  - Standalone FastAPI Chaos Mock Hub imitating Discourse, Dev.to, and Partner Webhook receiver.
+  - Header-driven fault switch `X-Chaos: timeout | 429 | 401 | 422 | rename_field | slow | 403` and `/__chaos/config` control endpoint.
+  - Four core connectors (`discourse`, `devto`, `webhook_hmac`, `assisted`) implemented with YAML manifests.
+  - Honest Dev.to unpublishing workaround for deletion implemented and documented.
+  - Partner webhook HMAC verification and signature replay expiration verified.
