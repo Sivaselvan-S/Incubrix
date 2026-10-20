@@ -8,7 +8,7 @@ This document tracks completed milestones, test proofs, and metrics for the fina
 |---|---|---|---|
 | Phase 1: Foundation & Data Engine | Completed | Pytest (5 passed in 0.09s), Ruff (all checks passed) | None |
 | Phase 2: Preflight Court | Completed | Table-driven pytest 42 scenarios + API endpoint (43 passed in 0.20s), 0 missed violations | None |
-| Phase 3: Connector Base & Runtime | Planned | Pending Phase 2 | None |
+| Phase 3: Connector Base & Runtime | Completed | Pytest (7 passed in 0.11s), Ruff (all checks passed), dynamic dispatch verified | None |
 | Phase 4: Idempotency & Job Queue | Planned | Pending Phase 3 | None |
 | Phase 5: Chaos Mock Hub & Core Connectors | Planned | Pending Phase 4 | None |
 | Phase 6: Drift Canary & Certification | Planned | Pending Phase 5 | None |
@@ -30,3 +30,8 @@ This document tracks completed milestones, test proofs, and metrics for the fina
   - Word boundary truncation with ellipsis implemented.
   - 42-row table-driven YAML test set (`tests/rules_cases.yaml`) verified with **0 missed violations**.
   - Synchronous dry-run endpoint `POST /api/v1/preflight` implemented and tested.
+- **Phase 3: Connector Base & Runtime (Verified)**:
+  - Abstract `BaseConnector` contract specified with all 7 lifecycle methods.
+  - YAML manifest parser and standard HTTP status code mapper implemented.
+  - Generic `POST /connector/v1/{connector_key}/{method}` router dispatches dynamically without hardcoded if/else branching.
+  - Enforced kill switch and circuit breaker checks at runtime.

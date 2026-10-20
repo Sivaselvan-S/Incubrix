@@ -12,6 +12,7 @@ from app.api.routes import health, preflight
 from app.config import get_settings
 from app.db.session import init_db
 from app.logging import correlation_id_ctx, get_logger, setup_logging
+from app.runtime import router as connector_router
 
 settings = get_settings()
 setup_logging(settings.LOG_LEVEL)
@@ -94,3 +95,4 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 # Mount core routes
 app.include_router(health.router)
 app.include_router(preflight.router)
+app.include_router(connector_router.router)
