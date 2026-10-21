@@ -38,11 +38,19 @@
 ## ADR 008: Multi-Criteria Recommender with Cold-Start Neutral Prior
 - **Context**: Content distribution requires matching content to the most suitable destinations considering topic relevance, rules fit, and historical performance. New destinations without publication history would otherwise be penalized to 0.0.
 - **Decision**: Formula `0.50 * relevance + 0.25 * rules_fit + 0.25 * past_result_score`. Past performance uses a neutral prior baseline of 0.50 for cold-start destinations. Hard constraints (inactive, self-promo disallowed on promotional content, open circuit breakers) produce a hard zero for `rules_fit`, preventing inappropriate recommendations.
-- **Status**: Accepted.
-
 ## ADR 009: Background Recertification Scheduler
 - **Context**: Passports must remain verified over time. Expired or stale Passports (> 25 days) must be recertified automatically without manual human intervention.
 - **Decision**: A periodic scanner detects active destinations whose `last_certified_at` timestamp exceeds the 25-day cutoff (or 10-second demo mode). Stale destinations are scheduled for recertification by enqueuing `certify` jobs into the standard database queue, processed asynchronously by the worker.
+- **Status**: Accepted.
+
+## ADR 010: Native Single-Page Flight Deck Dashboard via FastAPI Static Files
+- **Context**: The operator and live demonstration require an interactive visual dashboard for passport exploration, preflight simulation, publishing telemetry, recommender queries, and chaos drift demonstration without introducing heavyweight Node.js/npm frontend build toolchains or framework dependencies.
+- **Decision**: Implemented a responsive dark-mode glassmorphic single-page dashboard served natively by FastAPI at `/` (`static/index.html`, `static/style.css`, `static/app.js`). Vanilla JavaScript uses standard `fetch()` calls to interact with `/api/v1` and Chaos MockHub without build steps.
+- **Status**: Accepted.
+
+## ADR 011: Pinned OpenAPI 3.1 Contract with Automated CI Drift Gate
+- **Context**: External clients, CLI batch runners, and API integrators depend on exact OpenAPI schema stability.
+- **Decision**: Export and commit `openapi.yaml` (OpenAPI 3.1.0) in the project root. Enforce an automated regression test (`tests/test_openapi_contract.py`) that diffs the committed specification against the live FastAPI app schema, guaranteeing the documentation remains synchronized with code.
 - **Status**: Accepted.
 
 

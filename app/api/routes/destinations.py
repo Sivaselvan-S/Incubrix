@@ -210,3 +210,49 @@ def trigger_recertify_stale(
     db.commit()
     return result
 
+
+@router.post("/{destination_id}/demote", status_code=status.HTTP_200_OK)
+def demote_destination(
+    destination_id: str,
+    payload: dict[str, Any] | None = None,
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Manually demotes a destination and records an alert."""
+    dest = db.query(DestinationModel).filter(DestinationModel.id == destination_id).first()
+    if not dest:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "error": {
+                    "code": "DESTINATION_NOT_FOUND",
+                    "message": f"Destination '{destination_id}' was not found.",
+                    "retryable": False,
+                    "details": {"destination_id": destination_id},
+                }
+            },
+        )
+
+    reason = (payload or {}).get("reason", "Operator manual demotion")
+    dest.status = "demoted"
+    dest.level = "L0"
+    if dest.passport:
+        dest.passport.level = "L0"
+        dest.passport.demotion_reason = reason
+
+    from app.db.models import AlertModel
+
+    alert = AlertModel(
+        destination_id=dest.id,
+        kind="manual_demotion",
+        message=f"Destination '{dest.name}' was demoted to L0: {reason}",
+    )
+    db.add(alert)
+    db.commit()
+
+    return {
+        "destination_id": dest.id,
+        "status": dest.status,
+        "level": dest.level,
+        "demotion_reason": reason,
+    }
+

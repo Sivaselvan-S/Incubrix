@@ -1,0 +1,977 @@
+openapi: 3.1.0
+info:
+  title: LongTail Passport
+  description: Connector service with living, verifiable Passports and Preflight Court.
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      tags:
+      - Health
+      summary: Health Check
+      description: Liveness probe confirming the API service is alive.
+      operationId: health_check_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Health Check Health Get
+  /ready:
+    get:
+      tags:
+      - Health
+      summary: Readiness Check
+      description: Readiness probe checking database connectivity and storage readiness.
+      operationId: readiness_check_ready_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Readiness Check Ready Get
+  /api/v1/preflight:
+    post:
+      tags:
+      - Preflight Court
+      summary: Evaluate Preflight
+      description: Synchronously evaluates a rendition against a destination's rules
+        without publishing.
+      operationId: evaluate_preflight_api_v1_preflight_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreflightRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtVerdict'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /connector/v1/{connector_key}/{method}:
+    post:
+      tags:
+      - Connector Runtime
+      summary: Execute Connector Method
+      description: 'Dynamically executes a method against a connector instance looked
+        up by key.
+
+
+        Does not contain any hardcoded platform if/else branches.'
+      operationId: execute_connector_method_connector_v1__connector_key___method__post
+      parameters:
+      - name: connector_key
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Connector Key
+      - name: method
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Method
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectorRuntimeRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Execute Connector Method Connector V1  Connector Key   Method  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/publications:
+    post:
+      tags:
+      - Publications
+      summary: Submit Publication
+      description: 'Submits a publication request asynchronously.
+
+
+        Enforces intent-first idempotency before initiating any background job.'
+      operationId: submit_publication_api_v1_publications_post
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicationRequest'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Submit Publication Api V1 Publications Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/jobs/{job_id}:
+    get:
+      tags:
+      - Jobs
+      summary: Get Job Status
+      description: Queries the current status, progress, and result links of a background
+        job.
+      operationId: get_job_status_api_v1_jobs__job_id__get
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Job Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Job Status Api V1 Jobs  Job Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/destinations:
+    post:
+      tags:
+      - Destinations & Passports
+      summary: Create Destination
+      description: Registers a new destination record with default uncertified L0
+        Passport.
+      operationId: create_destination_api_v1_destinations_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDestinationRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Destination Api V1 Destinations Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - Destinations & Passports
+      summary: List Destinations
+      description: Lists destination records with optional filtering.
+      operationId: list_destinations_api_v1_destinations_get
+      parameters:
+      - name: platform_key
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Platform Key
+      - name: surface
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Surface
+      - name: level
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Level
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                title: Response List Destinations Api V1 Destinations Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/destinations/{destination_id}/passport:
+    get:
+      tags:
+      - Destinations & Passports
+      summary: Get Destination Passport
+      description: Retrieves the verifiable living Passport for a specific destination.
+      operationId: get_destination_passport_api_v1_destinations__destination_id__passport_get
+      parameters:
+      - name: destination_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Destination Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Destination Passport Api V1 Destinations  Destination
+                  Id  Passport Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/destinations/{destination_id}/certify:
+    post:
+      tags:
+      - Destinations & Passports
+      summary: Trigger Destination Certification
+      description: Queues a certification harness run for a destination.
+      operationId: trigger_destination_certification_api_v1_destinations__destination_id__certify_post
+      parameters:
+      - name: destination_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Destination Id
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Trigger Destination Certification Api V1 Destinations  Destination
+                  Id  Certify Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/destinations/recertify-stale:
+    post:
+      tags:
+      - Destinations & Passports
+      summary: Trigger Recertify Stale
+      description: Scans and enqueues recertification jobs for stale passports.
+      operationId: trigger_recertify_stale_api_v1_destinations_recertify_stale_post
+      parameters:
+      - name: demo_mode
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Demo Mode
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Trigger Recertify Stale Api V1 Destinations Recertify
+                  Stale Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/destinations/{destination_id}/demote:
+    post:
+      tags:
+      - Destinations & Passports
+      summary: Demote Destination
+      description: Manually demotes a destination and records an alert.
+      operationId: demote_destination_api_v1_destinations__destination_id__demote_post
+      parameters:
+      - name: destination_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Destination Id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - type: object
+                additionalProperties: true
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Demote Destination Api V1 Destinations  Destination
+                  Id  Demote Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/destinations/import-csv:
+    post:
+      tags:
+      - catalogue
+      summary: Import Csv File
+      description: Ingests and streams destinations from an uploaded CSV file or raw
+        CSV text.
+      operationId: import_csv_file_api_v1_destinations_import_csv_post
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Import Csv File Api V1 Destinations Import Csv Post
+  /api/v1/rules/extract:
+    post:
+      tags:
+      - rules-capture
+      summary: Extract Rules
+      description: Parses unformatted policy text and returns proposed rule constraints
+        with confidence.
+      operationId: extract_rules_api_v1_rules_extract_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtractRulesRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Extract Rules Api V1 Rules Extract Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/rules/confirm:
+    post:
+      tags:
+      - rules-capture
+      summary: Confirm Rules
+      description: Records human confirmation of destination rules and writes an immutable
+        audit log entry.
+      operationId: confirm_rules_api_v1_rules_confirm_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmRulesRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Confirm Rules Api V1 Rules Confirm Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/recommendations:
+    post:
+      tags:
+      - recommender
+      summary: Get Recommendations
+      description: Computes destination recommendations ranked by composite multi-criteria
+        scoring.
+      operationId: get_recommendations_api_v1_recommendations_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Get Recommendations Api V1 Recommendations Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/publications/{publication_id}/metrics:
+    post:
+      tags:
+      - metrics
+      summary: Trigger Fetch Metrics
+      description: Fetches normalized metrics from the external destination platform
+        and stores a snapshot.
+      operationId: trigger_fetch_metrics_api_v1_publications__publication_id__metrics_post
+      parameters:
+      - name: publication_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Publication Id
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Trigger Fetch Metrics Api V1 Publications  Publication
+                  Id  Metrics Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - metrics
+      summary: Get Publication Metrics
+      description: Retrieves the latest recorded engagement metrics snapshot for a
+        publication.
+      operationId: get_publication_metrics_api_v1_publications__publication_id__metrics_get
+      parameters:
+      - name: publication_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Publication Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Publication Metrics Api V1 Publications  Publication
+                  Id  Metrics Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    ConfirmRulesRequest:
+      properties:
+        destination_id:
+          type: string
+          title: Destination Id
+        confirmed_rules:
+          additionalProperties: true
+          type: object
+          title: Confirmed Rules
+        actor:
+          type: string
+          title: Actor
+          description: Username or ID of the human reviewer.
+          default: editorial_staff
+      type: object
+      required:
+      - destination_id
+      - confirmed_rules
+      title: ConfirmRulesRequest
+      description: Payload to record human verification and apply confirmed rules
+        to a destination.
+    ConnectorRuntimeRequest:
+      properties:
+        rendition:
+          additionalProperties: true
+          type: object
+          title: Rendition
+        destination:
+          additionalProperties: true
+          type: object
+          title: Destination
+        connection:
+          additionalProperties: true
+          type: object
+          title: Connection
+        idempotency_key:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency Key
+        platform_post_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Platform Post Id
+        since:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Since
+      type: object
+      title: ConnectorRuntimeRequest
+      description: Payload for executing a method on a connector.
+    CourtVerdict:
+      properties:
+        verdict:
+          $ref: '#/components/schemas/VerdictEnum'
+        rule_id:
+          type: string
+          title: Rule Id
+        code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Code
+        reason:
+          type: string
+          title: Reason
+        rewritten_rendition:
+          anyOf:
+          - $ref: '#/components/schemas/Rendition'
+          - type: 'null'
+        earliest_allowed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Earliest Allowed At
+        warnings:
+          items:
+            type: string
+          type: array
+          title: Warnings
+        violations:
+          items:
+            $ref: '#/components/schemas/FieldViolation'
+          type: array
+          title: Violations
+      type: object
+      required:
+      - verdict
+      - rule_id
+      - reason
+      title: CourtVerdict
+      description: Deterministic verdict output from Preflight Court.
+    CreateDestinationRequest:
+      properties:
+        name:
+          type: string
+          title: Name
+        url:
+          type: string
+          title: Url
+        platform_key:
+          type: string
+          title: Platform Key
+        surface:
+          type: string
+          title: Surface
+          default: community
+        category:
+          type: string
+          title: Category
+          default: general
+        audience_tags:
+          items:
+            type: string
+          type: array
+          title: Audience Tags
+        language:
+          type: string
+          title: Language
+          default: en
+        geo:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Geo
+        est_audience:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Est Audience
+        rules_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Rules Url
+        frequency_cap:
+          additionalProperties:
+            type: integer
+          type: object
+          title: Frequency Cap
+        self_promo_allowed:
+          type: boolean
+          title: Self Promo Allowed
+          default: true
+        link_policy:
+          type: string
+          title: Link Policy
+          default: none
+        disclosure_required:
+          type: boolean
+          title: Disclosure Required
+          default: false
+        automation_allowed:
+          type: boolean
+          title: Automation Allowed
+          default: true
+        connector_key:
+          type: string
+          title: Connector Key
+        instance_config:
+          additionalProperties: true
+          type: object
+          title: Instance Config
+        relevance_score:
+          type: number
+          title: Relevance Score
+          default: 0.0
+        relevance_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Relevance Reason
+      type: object
+      required:
+      - name
+      - url
+      - platform_key
+      - connector_key
+      title: CreateDestinationRequest
+      description: Payload for registering a new publishing destination.
+    ExtractRulesRequest:
+      properties:
+        text:
+          type: string
+          title: Text
+          description: Community guidelines or terms of service text.
+        url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url
+          description: Optional source policy URL.
+      type: object
+      required:
+      - text
+      title: ExtractRulesRequest
+      description: Payload containing raw policy or community guidelines text.
+    FieldViolation:
+      properties:
+        field:
+          type: string
+          title: Field
+        rule:
+          type: string
+          title: Rule
+        limit:
+          title: Limit
+        actual:
+          title: Actual
+      type: object
+      required:
+      - field
+      - rule
+      - limit
+      - actual
+      title: FieldViolation
+      description: Details a specific constraint violation on a rendition field.
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    PreflightRequest:
+      properties:
+        destination_id:
+          type: string
+          title: Destination Id
+        rendition:
+          $ref: '#/components/schemas/Rendition'
+        surface_spec:
+          anyOf:
+          - $ref: '#/components/schemas/SurfaceSpec'
+          - type: 'null'
+      type: object
+      required:
+      - destination_id
+      - rendition
+      title: PreflightRequest
+      description: Payload for dry-run preflight evaluation.
+    PublicationRequest:
+      properties:
+        destination_id:
+          type: string
+          title: Destination Id
+        content_id:
+          type: string
+          title: Content Id
+          default: content_001
+        rendition:
+          additionalProperties: true
+          type: object
+          title: Rendition
+        callback_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Callback Url
+      type: object
+      required:
+      - destination_id
+      title: PublicationRequest
+      description: Payload for submitting a content publication.
+    RecommendationRequest:
+      properties:
+        title:
+          type: string
+          title: Title
+          description: Post or article title
+        body:
+          type: string
+          title: Body
+          description: Content body
+        category:
+          type: string
+          title: Category
+          description: Primary topic category
+          default: technology
+        tags:
+          items:
+            type: string
+          type: array
+          title: Tags
+          description: Content tags
+        language:
+          type: string
+          title: Language
+          description: Content language code
+          default: en
+        is_promotional:
+          type: boolean
+          title: Is Promotional
+          description: Whether content is promotional
+          default: false
+        limit:
+          type: integer
+          maximum: 50.0
+          minimum: 1.0
+          title: Limit
+          description: Max recommendations to return
+          default: 10
+      type: object
+      required:
+      - title
+      - body
+      title: RecommendationRequest
+      description: Payload for finding matching destinations for a piece of content.
+    Rendition:
+      properties:
+        title:
+          type: string
+          title: Title
+          default: ''
+        body:
+          type: string
+          title: Body
+          default: ''
+        links:
+          items:
+            type: string
+          type: array
+          title: Links
+        media:
+          items:
+            type: string
+          type: array
+          title: Media
+        is_promotional:
+          type: boolean
+          title: Is Promotional
+          default: false
+        ai_generated:
+          type: boolean
+          title: Ai Generated
+          default: false
+        canonical_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Canonical Url
+        language:
+          type: string
+          title: Language
+          default: en
+      type: object
+      title: Rendition
+      description: Content candidate being evaluated for publication.
+    SurfaceSpec:
+      properties:
+        max_title_chars:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Max Title Chars
+        max_body_chars:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Max Body Chars
+        allowed_media_types:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Allowed Media Types
+        links_allowed:
+          type: boolean
+          title: Links Allowed
+          default: true
+      type: object
+      title: SurfaceSpec
+      description: Physical format constraints defined by the connector surface manifest.
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    VerdictEnum:
+      type: string
+      enum:
+      - ALLOW
+      - REWRITE
+      - RESCHEDULE
+      - BLOCK
+      - ASSIST
+      title: VerdictEnum
+      description: The five possible verdicts rendered by the Preflight Court.

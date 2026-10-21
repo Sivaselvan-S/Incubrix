@@ -1,5 +1,4 @@
-"""FastAPI main application entrypoint."""
-
+import os
 import uuid
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -7,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import catalogue, destinations, health, jobs, preflight, publications
 from app.config import get_settings
@@ -109,5 +109,10 @@ app.include_router(catalogue.router)
 app.include_router(rules_router)
 app.include_router(recommend_router)
 app.include_router(metrics_router)
+
+# Mount Flight Deck UI (Static Frontend)
+_static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "static")
+if os.path.exists(_static_dir):
+    app.mount("/", StaticFiles(directory=_static_dir, html=True), name="static")
 
 

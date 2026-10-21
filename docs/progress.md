@@ -15,7 +15,7 @@ This document tracks completed milestones, test proofs, and metrics for the fina
 | Phase 7: Real Instances & Extra Connectors | Completed | Pytest (10 passed in 4.01s, 85 passed total), Ruff (all checks passed), all 5 extra connectors verified | None |
 | Phase 8: Tailoring, Catalogue & Rules Capture | Completed | Pytest (10 passed in 0.21s, 95 passed total), Ruff (all checks passed), 1,000-row benchmark (< 5s) | None |
 | Phase 9: Recommender, Recertification & Metrics | Completed | Pytest (8 passed in 0.89s, 103 passed total), Precision@10 evaluated (100.0% >= 70%), Ruff passed | None |
-| Phase 10: Flight Deck, CLI & Submission | Planned | Pending Phase 9 | None |
+| Phase 10: Flight Deck, CLI & Submission | Completed | Pytest (122 passed in 9.4s across 11 test modules), 13 hard cases verified, Ruff passed | None |
 
 ## Verification Evidence Log
 - **Phase 1: Foundation & Data Engine (Verified)**:
@@ -102,6 +102,31 @@ This document tracks completed milestones, test proofs, and metrics for the fina
     - Queried from platform connectors (Discourse, Dev.to, Ghost) and persisted to `metrics` table.
     - Endpoints `POST /api/v1/publications/{id}/metrics` and `GET /api/v1/publications/{id}/metrics` tested and verified.
   - Test suite `tests/test_recommender_recertification_metrics.py` passing (8/8 tests, 103 passed total).
+- **Phase 10: Flight Deck, CLI & Submission (Verified)**:
+  - Flight Deck Interactive Dashboard (`static/index.html`, `static/style.css`, `static/app.js`):
+    - Dark mode glassmorphism UI served natively at root `/` via FastAPI StaticFiles.
+    - Real-time Passport explorer with L0-L4 level progression badges, health progress meters, and cryptographic schema fingerprints.
+    - Synchronous Preflight Court simulator with live PASS/REWRITE/BLOCK rulings and auto-fixed diff preview.
+    - Idempotency & publication console with live job telemetry polling, manifest inspector, and cached replay testing.
+    - Chaos MockHub fault generator with interactive "Break Dev.to API" trigger demonstrating automated schema drift detection, auto-demotion to L0, and alerting.
+    - Human-in-the-loop rules capture extractor and audit log confirmation workflow.
+  - Batch Runner CLI (`cli/batch_runner.py`):
+    - Multi-file content ingestion (Markdown with frontmatter, pure Markdown, or JSON).
+    - Stable content-hashed idempotency key generation, automated destination routing, and job polling.
+    - Produces `<stem>_result.json` and `<stem>_manifest.json` in output directory.
+    - Unit tests in `tests/test_batch_runner.py` (4/4 passed).
+  - Production Hard-Cases Verification Suite (`tests/test_hard_cases.py`):
+    - 14 automated edge-case scenarios covering network timeouts, 429 backoff rescheduling, 401/403 expired auth, 422 rejected content, title/body truncation, unsupported media, frequency caps, no-promo enforcement, schema drift auto-demotion, messy CSV imports, language divergence warnings, AI disclosures, and secrets redaction.
+    - 14/14 passed.
+  - OpenAPI 3.1 Contract Specification (`openapi.yaml`):
+    - Full OpenAPI 3.1.0 schema generated and committed at root.
+    - Verified by CI regression test `tests/test_openapi_contract.py` (1/1 passed).
+  - Complete Submission Documentation:
+    - `README.md` with under 10 commands quickstart, Mermaid architecture diagram, core concepts, and error codes table.
+    - `REPORT.md` 2-4 pages technical report with benchmark tables, hard-case resolutions, trade-offs, and live session rehearsal guide.
+    - `SOURCES.md` confirming commercial license compliance, zero AGPL dependencies in shipping code, and protocol attributions.
+    - `AI_USE.md` providing full transparency and disclosure of AI assistance.
+  - Final Test Suite Verification: **122 passed, 0 failures** in 9.4s. Ruff checks: **0 errors**.
 
 
 
