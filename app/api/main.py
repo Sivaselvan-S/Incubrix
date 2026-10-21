@@ -12,6 +12,8 @@ from app.api.routes import catalogue, destinations, health, jobs, preflight, pub
 from app.config import get_settings
 from app.db.session import init_db
 from app.logging import correlation_id_ctx, get_logger, setup_logging
+from app.metrics.routes import router as metrics_router
+from app.recommend.routes import router as recommend_router
 from app.rules_capture.routes import router as rules_router
 from app.runtime import router as connector_router
 
@@ -105,4 +107,7 @@ app.include_router(jobs.router)
 app.include_router(destinations.router)
 app.include_router(catalogue.router)
 app.include_router(rules_router)
+app.include_router(recommend_router)
+app.include_router(metrics_router)
+
 

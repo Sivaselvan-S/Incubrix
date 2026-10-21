@@ -196,3 +196,17 @@ def trigger_destination_certification(
         "destination_id": dest.id,
         "status": "queued",
     }
+
+
+@router.post("/recertify-stale", status_code=status.HTTP_200_OK)
+def trigger_recertify_stale(
+    demo_mode: bool = False,
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Scans and enqueues recertification jobs for stale passports."""
+    from app.passport.scheduler import scan_and_enqueue_recertifications
+
+    result = scan_and_enqueue_recertifications(db, demo_mode=demo_mode)
+    db.commit()
+    return result
+

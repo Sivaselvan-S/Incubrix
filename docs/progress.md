@@ -14,7 +14,7 @@ This document tracks completed milestones, test proofs, and metrics for the fina
 | Phase 6: Drift Canary & Certification | Completed | Pytest (8 passed in 2.17s), Ruff (all checks passed), 7-step harness & demotion verified | None |
 | Phase 7: Real Instances & Extra Connectors | Completed | Pytest (10 passed in 4.01s, 85 passed total), Ruff (all checks passed), all 5 extra connectors verified | None |
 | Phase 8: Tailoring, Catalogue & Rules Capture | Completed | Pytest (10 passed in 0.21s, 95 passed total), Ruff (all checks passed), 1,000-row benchmark (< 5s) | None |
-| Phase 9: Recommender, Recertification & Metrics | Planned | Pending Phase 8 | None |
+| Phase 9: Recommender, Recertification & Metrics | Completed | Pytest (8 passed in 0.89s, 103 passed total), Precision@10 evaluated (100.0% >= 70%), Ruff passed | None |
 | Phase 10: Flight Deck, CLI & Submission | Planned | Pending Phase 9 | None |
 
 ## Verification Evidence Log
@@ -85,5 +85,23 @@ This document tracks completed milestones, test proofs, and metrics for the fina
     - Immutable Audit Log entries (`audit_logs` table) generated on confirmation with before/after diffs and actor signatures.
     - Endpoint `POST /api/v1/destinations/import-csv` verified for file uploads and JSON payloads.
   - Test suite `tests/test_tailoring_catalogue_and_rules.py` passing (10/10 tests, 95 passed total).
+- **Phase 9: Recommender, Recertification & Metrics (Verified)**:
+  - Multi-Criteria Recommender Engine (`app/recommend/engine.py`):
+    - Scoring formula: `0.50 * relevance + 0.25 * rules_fit + 0.25 * past_result_score`.
+    - Relevance: topic category alignment, audience tag overlap, and language matching.
+    - Rules fit: Passport health score, Passport level (L4 bonus), frequency cap readiness, and hard block enforcement.
+    - Past result score: historical publication delivery success and engagement averages with neutral cold-start baseline (0.50).
+    - API route: `POST /api/v1/recommendations` returning ranked destinations with granular sub-score rationales.
+  - Precision@10 Evaluation Benchmark (`scripts/eval_recommender.py`):
+    - Evaluated against labeled test set (`data/labelled_recommender_set.csv`).
+    - Demonstrated **Precision@10: 100.00%**, meeting and exceeding the target threshold of `>= 70.00%`.
+  - Background Recertification Scheduler (`app/passport/scheduler.py`):
+    - Discovers stale Passports older than 25 days (or 10 seconds in demo mode) and enqueues background `certify` jobs.
+    - Verified on-demand via `POST /api/v1/destinations/recertify-stale`.
+  - Normalized Metrics Aggregation (`app/metrics/service.py`):
+    - Queried from platform connectors (Discourse, Dev.to, Ghost) and persisted to `metrics` table.
+    - Endpoints `POST /api/v1/publications/{id}/metrics` and `GET /api/v1/publications/{id}/metrics` tested and verified.
+  - Test suite `tests/test_recommender_recertification_metrics.py` passing (8/8 tests, 103 passed total).
+
 
 

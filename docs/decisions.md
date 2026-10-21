@@ -35,4 +35,15 @@
 - **Decision**: Candidate rules extracted via `POST /api/v1/rules/extract` require human review and explicit confirmation via `POST /api/v1/rules/confirm`. Every confirmation writes an immutable entry into `audit_logs` storing the full before/after JSON diff, actor identity, and UTC timestamp.
 - **Status**: Accepted.
 
+## ADR 008: Multi-Criteria Recommender with Cold-Start Neutral Prior
+- **Context**: Content distribution requires matching content to the most suitable destinations considering topic relevance, rules fit, and historical performance. New destinations without publication history would otherwise be penalized to 0.0.
+- **Decision**: Formula `0.50 * relevance + 0.25 * rules_fit + 0.25 * past_result_score`. Past performance uses a neutral prior baseline of 0.50 for cold-start destinations. Hard constraints (inactive, self-promo disallowed on promotional content, open circuit breakers) produce a hard zero for `rules_fit`, preventing inappropriate recommendations.
+- **Status**: Accepted.
+
+## ADR 009: Background Recertification Scheduler
+- **Context**: Passports must remain verified over time. Expired or stale Passports (> 25 days) must be recertified automatically without manual human intervention.
+- **Decision**: A periodic scanner detects active destinations whose `last_certified_at` timestamp exceeds the 25-day cutoff (or 10-second demo mode). Stale destinations are scheduled for recertification by enqueuing `certify` jobs into the standard database queue, processed asynchronously by the worker.
+- **Status**: Accepted.
+
+
 

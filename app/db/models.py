@@ -275,6 +275,8 @@ class MetricsModel(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
     platform_post_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    publication_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    destination_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
     views: Mapped[int] = mapped_column(Integer, default=0)
     likes: Mapped[int] = mapped_column(Integer, default=0)
     comments: Mapped[int] = mapped_column(Integer, default=0)
