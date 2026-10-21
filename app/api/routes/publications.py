@@ -61,13 +61,7 @@ def submit_publication(
         }
 
     # 3. Check if a job is already queued/running for this idempotency key
-    existing_job = (
-        db.query(JobModel)
-        .filter(JobModel.payload_json["idempotency_key"].astext == idempotency_key)
-        .first()
-        if "postgres" in db.bind.dialect.name
-        else None
-    )
+    existing_job = db.query(JobModel).filter(JobModel.idempotency_key == idempotency_key).first()
     if existing_job:
         return {
             "job_id": existing_job.id,
@@ -83,7 +77,11 @@ def submit_publication(
         "idempotency_key": idempotency_key,
     }
     job = enqueue_job(
-        db, job_type="publication", payload=job_payload, callback_url=payload.callback_url
+        db,
+        job_type="publication",
+        payload=job_payload,
+        callback_url=payload.callback_url,
+        idempotency_key=idempotency_key,
     )
     db.commit()
 

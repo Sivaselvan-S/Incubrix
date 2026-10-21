@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DiscoursePublishResponse",
+  "type": "object",
+  "required": ["id", "topic_id", "post_number", "live_url"],
+  "properties": {
+    "id": { "type": "integer" },
+    "topic_id": { "type": "integer" },
+    "post_number": { "type": "integer" },
+    "live_url": { "type": "string" }
+  },
+  "additionalProperties": true
+}

@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import health, jobs, preflight, publications
+from app.api.routes import destinations, health, jobs, preflight, publications
 from app.config import get_settings
 from app.db.session import init_db
 from app.logging import correlation_id_ctx, get_logger, setup_logging
@@ -101,3 +101,4 @@ app.include_router(preflight.router)
 app.include_router(connector_router.router)
 app.include_router(publications.router)
 app.include_router(jobs.router)
+app.include_router(destinations.router)

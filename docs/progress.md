@@ -11,7 +11,7 @@ This document tracks completed milestones, test proofs, and metrics for the fina
 | Phase 3: Connector Base & Runtime | Completed | Pytest (7 passed in 0.11s), Ruff (all checks passed), dynamic dispatch verified | None |
 | Phase 4: Idempotency & Job Queue | Completed | Pytest (6 passed in 0.11s), Ruff (all checks passed), ledger and worker verified | None |
 | Phase 5: Chaos Mock Hub & Core Connectors | Completed | Pytest (6 passed in 0.17s), Ruff (all checks passed), all 4 connectors & faults verified | None |
-| Phase 6: Drift Canary & Certification | Planned | Pending Phase 5 | None |
+| Phase 6: Drift Canary & Certification | Completed | Pytest (8 passed in 2.17s), Ruff (all checks passed), 7-step harness & demotion verified | None |
 | Phase 7: Real Instances & Extra Connectors | Planned | Pending Phase 6 | None |
 | Phase 8: Tailoring, Catalogue & Rules Capture | Planned | Pending Phase 7 | None |
 | Phase 9: Recommender, Recertification & Metrics | Planned | Pending Phase 8 | None |
@@ -49,3 +49,10 @@ This document tracks completed milestones, test proofs, and metrics for the fina
   - Four core connectors (`discourse`, `devto`, `webhook_hmac`, `assisted`) implemented with YAML manifests.
   - Honest Dev.to unpublishing workaround for deletion implemented and documented.
   - Partner webhook HMAC verification and signature replay expiration verified.
+- **Phase 6: Drift Canary & Certification Harness (Verified)**:
+  - Pinned JSON schemas created under `schemas/{discourse,devto,webhook_hmac}/publish.json`.
+  - Deterministic `schema_fingerprint` calculated from sorted field paths and types.
+  - Full 7-step certification harness (validate -> publish -> drift check -> live check -> read status -> delete -> confirm deleted -> evidence bundle).
+  - Evidence JSON bundled and saved with MinIO storage adapter and local fallback.
+  - Upstream field rename detected (`CERT_DRIFT_DETECTED`), auto-demotes destination and Passport to `L0`, creates Alert row, and blocks in Preflight Court.
+  - Endpoints `GET /api/v1/destinations/{id}/passport` and `POST /api/v1/destinations/{id}/certify` tested and verified.

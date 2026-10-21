@@ -36,15 +36,24 @@ class MockHubTransport(httpx.BaseTransport):
 def mockhub_client_interceptor(monkeypatch):
     """Intercepts httpx calls directed to MockHub URL and routes them in-process to mockhub_app."""
     STORE.clear()
-    transport = MockHubTransport(mockhub_app)
+    mock_client = TestClient(mockhub_app)
+    orig_send = httpx.Client.send
 
-    orig_client_init = httpx.Client.__init__
+    def patched_send(self, request, *args, **kwargs):
+        url_str = str(request.url)
+        if "8010" in url_str or "mockhub" in url_str:
+            url_path = request.url.raw_path.decode("utf-8")
+            headers = dict(request.headers)
+            headers.pop("host", None)
+            return mock_client.request(
+                method=request.method,
+                url=url_path,
+                headers=headers,
+                content=request.content,
+            )
+        return orig_send(self, request, *args, **kwargs)
 
-    def patched_init(self, *args, **kwargs):
-        kwargs["transport"] = transport
-        orig_client_init(self, *args, **kwargs)
-
-    monkeypatch.setattr(httpx.Client, "__init__", patched_init)
+    monkeypatch.setattr(httpx.Client, "send", patched_send)
     yield
 
 

@@ -21,10 +21,12 @@ def enqueue_job(
     job_type: str,
     payload: dict[str, Any],
     callback_url: str | None = None,
+    idempotency_key: str | None = None,
 ) -> JobModel:
     """Inserts a new job in queued state."""
     job = JobModel(
         id=generate_uuid(),
+        idempotency_key=idempotency_key,
         type=job_type,
         status="queued",
         progress=0,

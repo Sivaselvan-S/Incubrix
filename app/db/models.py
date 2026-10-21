@@ -208,6 +208,7 @@ class JobModel(Base):
     __tablename__ = "jobs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    idempotency_key: Mapped[str | None] = mapped_column(String(255), index=True, nullable=True)
     type: Mapped[str] = mapped_column(
         String(64), nullable=False
     )  # publication | certify | catalogue_import...

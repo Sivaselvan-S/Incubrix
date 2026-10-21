@@ -32,6 +32,16 @@ from app.rules.schemas import (
 logger = get_logger("app.queue.worker")
 
 
+class PreflightBlockedException(Exception):
+    """Raised when Preflight Court issues a BLOCK verdict."""
+
+    def __init__(self, code: str, message: str, details: dict[str, Any] | None = None):
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.details = details or {}
+
+
 def claim_next_job(db: Session) -> JobModel | None:
     """Claims the oldest queued job atomically using SELECT FOR UPDATE SKIP LOCKED."""
     is_postgres = "postgres" in engine.url.drivername.lower()
@@ -103,7 +113,11 @@ def execute_publication_job(db: Session, job: JobModel) -> dict[str, Any]:
             "violations": [v.model_dump() for v in verdict.violations],
         }
         record_failure(db, idempotency_key, err_data)
-        raise ValueError(f"Preflight Court BLOCKED post: {verdict.reason}")
+        raise PreflightBlockedException(
+            code=verdict.code or "PREFLIGHT_BLOCKED",
+            message=verdict.reason,
+            details=err_data,
+        )
 
     # Use rewritten rendition if Court auto-adjusted format
     active_rendition = verdict.rewritten_rendition if verdict.rewritten_rendition else rendition
@@ -205,6 +219,14 @@ def _process_single_job_internal(db: Session, job_id: str) -> None:
             job.status = "succeeded"
             job.result_json = result
             job.progress = 100
+        elif job.type == "certify":
+            from app.certify.harness import run_certification
+
+            dest_id = job.payload_json.get("destination_id", "")
+            cert_res = run_certification(db, dest_id)
+            job.status = "succeeded" if cert_res.get("status") == "passed" else "failed"
+            job.result_json = cert_res
+            job.progress = 100
         else:
             job.status = "succeeded"
             job.progress = 100
@@ -217,6 +239,18 @@ def _process_single_job_internal(db: Session, job_id: str) -> None:
             send_callback(job.callback_url, job.result_json or {})
 
         logger.info("Job %s completed successfully.", job.id)
+    except PreflightBlockedException as exc:
+        logger.warning("Job %s blocked by Preflight Court: %s", job.id, exc.message)
+        job.status = "failed"
+        job.error_json = {
+            "error": {
+                "code": exc.code,
+                "message": exc.message,
+                "retryable": False,
+                "details": exc.details,
+            }
+        }
+        db.commit()
     except Exception as exc:
         logger.exception("Job %s failed: %s", job.id, exc)
         job.status = "failed"
@@ -225,6 +259,7 @@ def _process_single_job_internal(db: Session, job_id: str) -> None:
                 "code": "JOB_FAILED",
                 "message": str(exc),
                 "retryable": False,
+                "details": {"error": str(exc)},
             }
         }
         db.commit()
