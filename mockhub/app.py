@@ -307,3 +307,276 @@ async def partner_webhook_receiver(
     STORE[f"webhook_{event_id}"] = {"event_id": event_id, "body": body_str}
 
     return {"status": "received", "event_id": event_id}
+
+
+# ------------------------------------------------------------------------------
+# Lemmy-Compatible Endpoints
+# ------------------------------------------------------------------------------
+@app.post("/api/v3/user/login")
+async def lemmy_login(request: Request, x_chaos: str | None = Header(None, alias="X-Chaos")):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+    return {"jwt": "mock_lemmy_jwt_token_123", "verify_2fa_ssl": False}
+
+
+@app.post("/api/v3/post")
+async def lemmy_create_post(
+    request: Request,
+    authorization: str | None = Header(None, alias="Authorization"),
+    x_chaos: str | None = Header(None, alias="X-Chaos"),
+):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+
+    data = await request.json()
+    auth_token = data.get("auth") or (authorization.replace("Bearer ", "") if authorization else None)
+    if not auth_token:
+        return JSONResponse(status_code=401, content={"error": "not_logged_in"})
+
+    global ID_COUNTER
+    ID_COUNTER += 1
+    post_id = ID_COUNTER
+    ap_id = f"http://localhost:8536/post/{post_id}"
+    item = {
+        "id": post_id,
+        "name": data.get("name", "Untitled Lemmy Post"),
+        "body": data.get("body", ""),
+        "community_id": data.get("community_id", 1),
+        "deleted": False,
+        "ap_id": ap_id,
+    }
+    STORE[f"lemmy_{post_id}"] = item
+    return {
+        "post_view": {
+            "post": item
+        }
+    }
+
+
+@app.get("/api/v3/post")
+async def lemmy_get_post(id: int, request: Request, x_chaos: str | None = Header(None, alias="X-Chaos")):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+
+    item = STORE.get(f"lemmy_{id}")
+    if not item:
+        return JSONResponse(status_code=404, content={"error": "couldnt_find_post"})
+    return {"post_view": {"post": item}}
+
+
+@app.post("/api/v3/post/delete")
+async def lemmy_delete_post(request: Request, x_chaos: str | None = Header(None, alias="X-Chaos")):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+
+    data = await request.json()
+    post_id = data.get("post_id")
+    item = STORE.get(f"lemmy_{post_id}")
+    if not item:
+        return JSONResponse(status_code=404, content={"error": "couldnt_find_post"})
+
+    item["deleted"] = data.get("deleted", True)
+    return {"post_view": {"post": item}}
+
+
+# ------------------------------------------------------------------------------
+# Ghost Admin API Endpoints
+# ------------------------------------------------------------------------------
+@app.post("/ghost/api/admin/posts")
+@app.post("/ghost/api/admin/posts/")
+async def ghost_create_post(
+    request: Request,
+    authorization: str | None = Header(None, alias="Authorization"),
+    x_chaos: str | None = Header(None, alias="X-Chaos"),
+):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+
+    if not authorization or not authorization.startswith("Ghost "):
+        # Real Ghost expects Ghost <token> or Bearer <token>
+        if not authorization or not authorization.startswith("Bearer "):
+            return JSONResponse(status_code=401, content={"errors": [{"message": "Invalid token"}]})
+
+    data = await request.json()
+    posts_payload = data.get("posts", [{}])[0]
+
+    global ID_COUNTER
+    ID_COUNTER += 1
+    ghost_id = f"64f{ID_COUNTER:06x}a1234567890a"
+    post_url = f"http://localhost:2368/{ghost_id}/"
+
+    STORE[f"ghost_{ghost_id}"] = {
+        "id": ghost_id,
+        "title": posts_payload.get("title", "Untitled Ghost Post"),
+        "html": posts_payload.get("html", ""),
+        "url": post_url,
+        "canonical_url": posts_payload.get("canonical_url"),
+        "status": posts_payload.get("status", "published"),
+    }
+    return {
+        "posts": [
+            {
+                "id": ghost_id,
+                "title": posts_payload.get("title", ""),
+                "url": post_url,
+                "status": "published",
+            }
+        ]
+    }
+
+
+@app.get("/ghost/api/admin/posts/{post_id}")
+@app.get("/ghost/api/admin/posts/{post_id}/")
+async def ghost_get_post(post_id: str, request: Request, x_chaos: str | None = Header(None, alias="X-Chaos")):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+
+    item = STORE.get(f"ghost_{post_id}")
+    if not item:
+        return JSONResponse(status_code=404, content={"errors": [{"message": "Post not found."}]})
+    return {"posts": [item]}
+
+
+@app.delete("/ghost/api/admin/posts/{post_id}")
+@app.delete("/ghost/api/admin/posts/{post_id}/")
+async def ghost_delete_post(post_id: str, request: Request, x_chaos: str | None = Header(None, alias="X-Chaos")):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+
+    item = STORE.pop(f"ghost_{post_id}", None)
+    if not item:
+        return JSONResponse(status_code=404, content={"errors": [{"message": "Post not found."}]})
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ------------------------------------------------------------------------------
+# Hashnode GraphQL Endpoint
+# ------------------------------------------------------------------------------
+@app.post("/graphql")
+async def hashnode_graphql(
+    request: Request,
+    authorization: str | None = Header(None, alias="Authorization"),
+    x_chaos: str | None = Header(None, alias="X-Chaos"),
+):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+
+    data = await request.json()
+    query = data.get("query", "")
+    variables = data.get("variables", {})
+
+    if "publishPost" in query:
+        global ID_COUNTER
+        ID_COUNTER += 1
+        post_id = f"hn_{ID_COUNTER}"
+        live_url = f"https://blog.hashnode.dev/post-{post_id}"
+        input_data = variables.get("input", {})
+        STORE[f"hashnode_{post_id}"] = {
+            "id": post_id,
+            "url": live_url,
+            "title": input_data.get("title", "Hashnode Post"),
+            "deleted": False,
+        }
+        return {
+            "data": {
+                "publishPost": {
+                    "post": {
+                        "id": post_id,
+                        "url": live_url,
+                        "title": input_data.get("title", "Hashnode Post"),
+                    }
+                }
+            }
+        }
+    elif "removePost" in query or "delete" in query.lower():
+        target_id = variables.get("id") or str(ID_COUNTER)
+        item = STORE.get(f"hashnode_{target_id}")
+        if item:
+            item["deleted"] = True
+        return {"data": {"removePost": {"post": {"id": target_id}}}}
+
+    target_id = variables.get("id") or str(ID_COUNTER)
+    item = STORE.get(f"hashnode_{target_id}")
+    if item and not item.get("deleted"):
+        return {"data": {"post": item}}
+    return {"data": {"post": None}}
+
+
+# ------------------------------------------------------------------------------
+# Slack Web API Endpoints
+# ------------------------------------------------------------------------------
+@app.post("/api/chat.postMessage")
+async def slack_post_message(
+    request: Request,
+    authorization: str | None = Header(None, alias="Authorization"),
+    x_chaos: str | None = Header(None, alias="X-Chaos"),
+):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+
+    data = await request.json()
+    channel = data.get("channel", "general")
+    text = data.get("text", "")
+
+    global ID_COUNTER
+    ID_COUNTER += 1
+    ts = f"1729425{ID_COUNTER:03d}.000100"
+    STORE[f"slack_{ts}"] = {"channel": channel, "ts": ts, "text": text, "deleted": False}
+    return {
+        "ok": True,
+        "channel": channel,
+        "ts": ts,
+        "message": {"text": text, "type": "message", "user": "U123456", "ts": ts},
+    }
+
+
+@app.post("/api/chat.delete")
+async def slack_delete_message(
+    request: Request,
+    authorization: str | None = Header(None, alias="Authorization"),
+    x_chaos: str | None = Header(None, alias="X-Chaos"),
+):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+
+    data = await request.json()
+    ts = data.get("ts")
+    item = STORE.get(f"slack_{ts}")
+    if not item:
+        return {"ok": False, "error": "message_not_found"}
+    item["deleted"] = True
+    return {"ok": True, "channel": data.get("channel"), "ts": ts}
+
+
+@app.get("/api/conversations.history")
+@app.get("/api/chat.get")
+async def slack_get_message(
+    channel: str = "general",
+    latest: str | None = None,
+    ts: str | None = None,
+    request: Request = None,
+    x_chaos: str | None = Header(None, alias="X-Chaos"),
+):
+    fault = await check_chaos_fault(request, x_chaos)
+    if fault:
+        return fault
+
+    target_ts = ts or latest
+    if target_ts:
+        item = STORE.get(f"slack_{target_ts}")
+        if not item or item.get("deleted"):
+            return {"ok": False, "error": "message_not_found"}
+        return {"ok": True, "messages": [item]}
+
+    return {"ok": True, "messages": [v for k, v in STORE.items() if k.startswith("slack_") and not v.get("deleted")]}
+

@@ -12,7 +12,7 @@ This document tracks completed milestones, test proofs, and metrics for the fina
 | Phase 4: Idempotency & Job Queue | Completed | Pytest (6 passed in 0.11s), Ruff (all checks passed), ledger and worker verified | None |
 | Phase 5: Chaos Mock Hub & Core Connectors | Completed | Pytest (6 passed in 0.17s), Ruff (all checks passed), all 4 connectors & faults verified | None |
 | Phase 6: Drift Canary & Certification | Completed | Pytest (8 passed in 2.17s), Ruff (all checks passed), 7-step harness & demotion verified | None |
-| Phase 7: Real Instances & Extra Connectors | Planned | Pending Phase 6 | None |
+| Phase 7: Real Instances & Extra Connectors | Completed | Pytest (10 passed in 4.01s, 85 passed total), Ruff (all checks passed), all 5 extra connectors verified | None |
 | Phase 8: Tailoring, Catalogue & Rules Capture | Planned | Pending Phase 7 | None |
 | Phase 9: Recommender, Recertification & Metrics | Planned | Pending Phase 8 | None |
 | Phase 10: Flight Deck, CLI & Submission | Planned | Pending Phase 9 | None |
@@ -48,7 +48,6 @@ This document tracks completed milestones, test proofs, and metrics for the fina
   - Header-driven fault switch `X-Chaos: timeout | 429 | 401 | 422 | rename_field | slow | 403` and `/__chaos/config` control endpoint.
   - Four core connectors (`discourse`, `devto`, `webhook_hmac`, `assisted`) implemented with YAML manifests.
   - Honest Dev.to unpublishing workaround for deletion implemented and documented.
-  - Partner webhook HMAC verification and signature replay expiration verified.
 - **Phase 6: Drift Canary & Certification Harness (Verified)**:
   - Pinned JSON schemas created under `schemas/{discourse,devto,webhook_hmac}/publish.json`.
   - Deterministic `schema_fingerprint` calculated from sorted field paths and types.
@@ -56,3 +55,17 @@ This document tracks completed milestones, test proofs, and metrics for the fina
   - Evidence JSON bundled and saved with MinIO storage adapter and local fallback.
   - Upstream field rename detected (`CERT_DRIFT_DETECTED`), auto-demotes destination and Passport to `L0`, creates Alert row, and blocks in Preflight Court.
   - Endpoints `GET /api/v1/destinations/{id}/passport` and `POST /api/v1/destinations/{id}/certify` tested and verified.
+- **Phase 7: Real Instances & Extra Connectors (Verified)**:
+  - Docker Compose configured with `real-instances` profile for local Ghost and Lemmy containers.
+  - Bootstrap scripts `scripts/init_local_instances.sh` and `scripts/init_local_instances.ps1` implemented with healthcheck waiting logic.
+  - Five advanced extra connectors implemented with YAML manifests and pinned JSON schemas:
+    - `lemmy`: API v3 (`/api/v3/post`, `/api/v3/post/delete`, JWT auth).
+    - `ghost`: Admin API v5 with zero-dependency HS256 JWT generation, HTML posting, and honest deletion.
+    - `mrss_feed`: Media RSS 2.0 XML generator with Yahoo Media namespace, in-place update idempotency, and storage integration.
+    - `hashnode`: GraphQL mutations (`publishPost`, `removePost`) and queries.
+    - `slack`: Slack Web API (`chat.postMessage`, `chat.delete`, `conversations.history`).
+  - All 9 platform connectors registered in global dynamic registry (`app/connectors/init_connectors.py`).
+  - Runtime router `POST /connector/v1/{connector_key}/{method}` verified across new connectors.
+  - Full 7-step certification harness verified on Ghost and Lemmy destinations, promoting to `L4`.
+  - Comprehensive test suite `tests/test_real_instances_and_extra_connectors.py` passing (10/10 tests, 85 passed total).
+

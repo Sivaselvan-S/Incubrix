@@ -1,0 +1,23 @@
+key: mrss_feed
+version: 1.0.0
+tier: native
+instance_param: feed_name
+auth:
+  type: none
+surfaces:
+  feed:
+    max_title_chars: 255
+    max_body_chars: 100000
+    links_allowed: true
+rate_limits:
+  max_per_minute: 120
+capabilities:
+  can_publish: true
+  can_delete: true
+  can_get_status: true
+  can_fetch_metrics: false
+error_map:
+  "400": PLATFORM_CONTENT_REJECTED
+  "404": RESOURCE_NOT_FOUND
+response_schema_ref:
+  publish: schemas/mrss_feed/publish.json

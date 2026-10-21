@@ -105,6 +105,26 @@ services:
       - SIMULATION_MODE=true
       - LLM_PROVIDER=mock
 
+  ghost:
+    profiles: ["real-instances"]
+    image: ghost:5-alpine
+    container_name: longtail-ghost
+    ports:
+      - "2368:2368"
+    environment:
+      - url=http://localhost:2368
+      - NODE_ENV=development
+
+  lemmy:
+    profiles: ["real-instances"]
+    image: dessalines/lemmy:0.19.5
+    container_name: longtail-lemmy
+    ports:
+      - "8536:8536"
+    environment:
+      - RUST_LOG=info
+
 volumes:
   pgdata:
   miniodata:
+

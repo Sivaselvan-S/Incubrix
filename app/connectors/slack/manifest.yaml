@@ -1,0 +1,29 @@
+key: slack
+version: 1.0.0
+tier: native
+instance_param: channel
+auth:
+  type: bearer
+  headers:
+    token: Authorization
+surfaces:
+  channel:
+    max_title_chars: 255
+    max_body_chars: 40000
+    links_allowed: true
+rate_limits:
+  max_per_minute: 60
+capabilities:
+  can_publish: true
+  can_delete: true
+  can_get_status: true
+  can_fetch_metrics: true
+error_map:
+  "400": PLATFORM_CONTENT_REJECTED
+  "401": CONNECTION_AUTH_EXPIRED
+  "403": CONNECTION_AUTH_EXPIRED
+  "404": RESOURCE_NOT_FOUND
+  "429": PLATFORM_RATE_LIMIT
+  "504": PLATFORM_UNAVAILABLE
+response_schema_ref:
+  publish: schemas/slack/publish.json

@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MRSSPublishResponse",
+  "type": "object",
+  "required": ["platform_post_id", "live_url", "status"],
+  "properties": {
+    "platform_post_id": { "type": "string" },
+    "live_url": { "type": "string" },
+    "status": { "type": "string" },
+    "feed_name": { "type": "string" },
+    "items_count": { "type": "integer" }
+  }
+}

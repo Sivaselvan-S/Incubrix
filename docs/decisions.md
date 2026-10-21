@@ -14,3 +14,14 @@
 - **Context**: The specification strictly prohibits Redis and Celery to minimize moving parts and ensure transactional integrity with business records.
 - **Decision**: Job records live in the `jobs` table with states `queued`, `running`, `succeeded`, `failed`. The worker process polls and claims pending jobs atomically using `SELECT ... FOR UPDATE SKIP LOCKED LIMIT 1`.
 - **Status**: Accepted.
+
+## ADR 004: Pure-Python HS256 JWT Generation for Ghost Admin API
+- **Context**: Ghost Admin API v5 requires HS256 JWTs signed with a hexadecimal secret key (`id:secret`). Introducing heavy or platform-dependent C-extensions or external JWT libraries creates deployment vulnerabilities and dependency drift.
+- **Decision**: Implemented zero-dependency HS256 JWT generation using Python's standard library (`hmac`, `hashlib`, `base64`, `json`). Token validity follows the Ghost specification (`kid: id`, `aud: '/admin/'`, 5-minute TTL).
+- **Status**: Accepted.
+
+## ADR 005: MRSS Feed Generator with Single Namespace Registration and In-Place Idempotency
+- **Context**: Media RSS requires valid RSS 2.0 XML with the Yahoo Media RSS namespace (`xmlns:media="http://search.yahoo.com/mrss/"`). In Python ElementTree, setting namespace attributes manually alongside `ET.register_namespace` creates duplicate attribute serialization errors (`ParseError: duplicate attribute`). Re-submitting feed items must not produce duplicate entries in the RSS feed.
+- **Decision**: Use `ET.register_namespace("media", ...)` exclusively for namespace emission on serialization. Use `idempotency_key` as `<guid isPermaLink="false">`, updating matching item elements in-place when re-published and pruning elements upon deletion. Feeds persist deterministically in MinIO/local storage.
+- **Status**: Accepted.
+

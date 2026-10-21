@@ -42,6 +42,15 @@ class Settings(BaseSettings):
         "64f8a7e0c4b6a1234567890a:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
     )
 
+    # Hashnode Settings
+    HASHNODE_URL: str = "https://gql.hashnode.com"
+    HASHNODE_TOKEN: str = "mock_hashnode_token_123"
+    HASHNODE_PUBLICATION_ID: str = "pub_mock_123"
+
+    # Slack Settings
+    SLACK_URL: str = "https://slack.com/api"
+    SLACK_BOT_TOKEN: str = "xoxb-mock-token-1234567890"
+
     # AI Adapter
     LLM_PROVIDER: Literal["mock", "anthropic", "openai"] = "mock"
     ANTHROPIC_API_KEY: str | None = None
