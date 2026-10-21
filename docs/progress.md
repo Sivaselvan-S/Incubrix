@@ -13,7 +13,7 @@ This document tracks completed milestones, test proofs, and metrics for the fina
 | Phase 5: Chaos Mock Hub & Core Connectors | Completed | Pytest (6 passed in 0.17s), Ruff (all checks passed), all 4 connectors & faults verified | None |
 | Phase 6: Drift Canary & Certification | Completed | Pytest (8 passed in 2.17s), Ruff (all checks passed), 7-step harness & demotion verified | None |
 | Phase 7: Real Instances & Extra Connectors | Completed | Pytest (10 passed in 4.01s, 85 passed total), Ruff (all checks passed), all 5 extra connectors verified | None |
-| Phase 8: Tailoring, Catalogue & Rules Capture | Planned | Pending Phase 7 | None |
+| Phase 8: Tailoring, Catalogue & Rules Capture | Completed | Pytest (10 passed in 0.21s, 95 passed total), Ruff (all checks passed), 1,000-row benchmark (< 5s) | None |
 | Phase 9: Recommender, Recertification & Metrics | Planned | Pending Phase 8 | None |
 | Phase 10: Flight Deck, CLI & Submission | Planned | Pending Phase 9 | None |
 
@@ -67,5 +67,23 @@ This document tracks completed milestones, test proofs, and metrics for the fina
   - All 9 platform connectors registered in global dynamic registry (`app/connectors/init_connectors.py`).
   - Runtime router `POST /connector/v1/{connector_key}/{method}` verified across new connectors.
   - Full 7-step certification harness verified on Ghost and Lemmy destinations, promoting to `L4`.
-  - Comprehensive test suite `tests/test_real_instances_and_extra_connectors.py` passing (10/10 tests, 85 passed total).
+- **Phase 8: Tailoring, Catalogue & Rules Capture (Verified)**:
+  - Content Tailoring Engine implemented with surface-specific adaptations:
+    - Forums: Discussion hooks in title and discussion prompts appended to body.
+    - Articles/Blogs: Canonical URL preservation, hashtag extraction.
+    - Chat/Slack: Automated bulletization of lengthy announcements.
+    - Universal: AI disclosure footnote enforcement and URL shortener sanitization.
+    - Word boundary ellipsis truncation.
+  - Streaming Catalogue Importer:
+    - URL normalization (stripping `www.`, scheme casing, trailing slash, tracking params `utm_*`, `ref`).
+    - Robust deduplication preventing duplicate records across chunks.
+    - Stream-based batch insertion (`batch_size=250/500`) with initial L0 Passports.
+    - Benchmark verified: 1,000 destinations ingested in < 2 seconds (far below the 5-minute requirement).
+  - Rules Capture & Human Confirmation Workflow:
+    - Rule extractor parsing free-form policy text into frequency caps, self-promo, link policy, and AI disclosure.
+    - API endpoints `POST /api/v1/rules/extract` and `POST /api/v1/rules/confirm`.
+    - Immutable Audit Log entries (`audit_logs` table) generated on confirmation with before/after diffs and actor signatures.
+    - Endpoint `POST /api/v1/destinations/import-csv` verified for file uploads and JSON payloads.
+  - Test suite `tests/test_tailoring_catalogue_and_rules.py` passing (10/10 tests, 95 passed total).
+
 

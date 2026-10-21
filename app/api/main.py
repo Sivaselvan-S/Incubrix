@@ -8,10 +8,11 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import destinations, health, jobs, preflight, publications
+from app.api.routes import catalogue, destinations, health, jobs, preflight, publications
 from app.config import get_settings
 from app.db.session import init_db
 from app.logging import correlation_id_ctx, get_logger, setup_logging
+from app.rules_capture.routes import router as rules_router
 from app.runtime import router as connector_router
 
 settings = get_settings()
@@ -102,3 +103,6 @@ app.include_router(connector_router.router)
 app.include_router(publications.router)
 app.include_router(jobs.router)
 app.include_router(destinations.router)
+app.include_router(catalogue.router)
+app.include_router(rules_router)
+

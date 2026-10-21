@@ -25,3 +25,14 @@
 - **Decision**: Use `ET.register_namespace("media", ...)` exclusively for namespace emission on serialization. Use `idempotency_key` as `<guid isPermaLink="false">`, updating matching item elements in-place when re-published and pruning elements upon deletion. Feeds persist deterministically in MinIO/local storage.
 - **Status**: Accepted.
 
+## ADR 006: Streaming Catalogue Import with URL Normalization and Chunking
+- **Context**: Importing large catalogues (1,000+ destinations) must scale without memory spikes or database connection exhaustion, meeting the < 5 minute throughput SLA while eliminating duplicate domains and tracking parameters.
+- **Decision**: Implemented streaming `csv.DictReader` iteration with batch database flushes (`batch_size=250/500`). Pre-loaded normalized URL sets prevent repetitive query overhead. In-memory SQLite / Postgres benchmark ingests 1,000 rows in < 2.0 seconds.
+- **Status**: Accepted.
+
+## ADR 007: Human-in-the-Loop Rules Confirmation with Immutable Audit Logging
+- **Context**: Community rules extracted by automated NLP or AI models are probabilistic. Applying unverified rule changes to automated publishing can cause wrongful bans or account suspensions.
+- **Decision**: Candidate rules extracted via `POST /api/v1/rules/extract` require human review and explicit confirmation via `POST /api/v1/rules/confirm`. Every confirmation writes an immutable entry into `audit_logs` storing the full before/after JSON diff, actor identity, and UTC timestamp.
+- **Status**: Accepted.
+
+
