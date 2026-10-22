@@ -47,15 +47,29 @@ html, body {
   font-feature-settings: "kern" 1;
 }
 
-/* Stage & Background */
+/* Stage & Plain Glassmorphic Background */
 .stage {
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background-image: url("/assets/storm-background.jpg");
-  background-size: cover;
-  background-position: center 25%;
+  background-color: #060b13;
+  background-image:
+    radial-gradient(ellipse 70% 60% at 18% 18%, rgba(99, 102, 241, 0.20) 0%, transparent 70%),
+    radial-gradient(ellipse 65% 55% at 84% 78%, rgba(6, 182, 212, 0.18) 0%, transparent 68%),
+    radial-gradient(circle 500px at 48% 45%, rgba(16, 185, 129, 0.10) 0%, transparent 70%),
+    linear-gradient(180deg, #09121d 0%, #050a12 100%);
   background-repeat: no-repeat;
+}
+
+.stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: calc(28 * var(--u)) calc(28 * var(--u));
+  opacity: 0.7;
+  z-index: 1;
 }
 
 .stage::after {
@@ -64,9 +78,8 @@ html, body {
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(105deg, rgba(4, 16, 24, 0.34) 0%, rgba(4, 16, 24, 0.20) 40%, rgba(4, 16, 24, 0.06) 78%, transparent 100%),
-    linear-gradient(180deg, rgba(4, 16, 24, 0.12) 0%, transparent 22%),
-    linear-gradient(0deg, rgba(4, 16, 24, 0.07), rgba(4, 16, 24, 0.07));
+    radial-gradient(circle at 50% 50%, transparent 45%, rgba(3, 7, 12, 0.5) 100%),
+    linear-gradient(180deg, rgba(4, 16, 24, 0.2) 0%, transparent 25%);
   z-index: 2;
 }
 
@@ -511,7 +524,7 @@ html, body {
   fill: #ffffff;
 }
 
-.big-temp {
+.big-rating, .big-temp {
   font-family: var(--font-headline);
   font-size: calc(92 * var(--u));
   font-weight: 500;
@@ -521,7 +534,7 @@ html, body {
   color: #ffffff;
 }
 
-.big-temp i {
+.big-rating i, .big-temp i {
   font-style: normal;
   font-size: calc(42 * var(--u));
   font-weight: 400;

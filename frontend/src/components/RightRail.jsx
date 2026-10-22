@@ -22,12 +22,12 @@ export default function RightRail({
         <div>
           <div className="card-place">
             <svg>
-              <use href="#i-pin" />
+              <use href="#i-node" />
             </svg>
             <span>{destName}</span>
           </div>
 
-          <div className="big-temp">
+          <div className="big-rating">
             {destLevel}
             <i>{healthScore}%</i>
           </div>
@@ -36,19 +36,19 @@ export default function RightRail({
         <div className="card-metrics">
           <div className="sub-metric">
             <svg>
-              <use href="#i-wind" />
+              <use href="#i-eye" />
             </svg>
             <span>19.4k views</span>
           </div>
           <div className="sub-metric">
             <svg>
-              <use href="#i-drop" />
+              <use href="#i-heart" />
             </svg>
             <span>429 likes</span>
           </div>
           <div className="sub-metric">
             <svg>
-              <use href="#i-gust" />
+              <use href="#i-comment" />
             </svg>
             <span>15 cmts</span>
           </div>

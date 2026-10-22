@@ -2,11 +2,11 @@ import React from 'react';
 
 const METRICS = [
   { val: '6', label: 'L4 Certified', icon: '#i-shield' },
-  { val: '98%', label: 'Health Score', icon: '#i-drop' },
+  { val: '98%', label: 'Health Score', icon: '#i-pulse' },
   { val: '0', label: 'Violations Missed', icon: '#i-scale' },
   { val: '0', label: 'Duplicates Replayed', icon: '#i-key' },
   { val: '9', label: 'Active Connectors', icon: '#i-globe' },
-  { val: '1.8s', label: '1,000 Ingest', icon: '#i-wind' },
+  { val: '1.8s', label: '1,000 Ingest', icon: '#i-speed' },
 ];
 
 const PLATFORMS = [
