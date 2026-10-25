@@ -1,9 +1,11 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+
+# C extensions & builds
 build/
 develop-eggs/
 dist/
@@ -22,43 +24,64 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Virtual Environment
+# Virtual Environments
 .venv/
 env/
 venv/
 ENV/
+env.bak/
+venv.bak/
 
 # Environment Variables & Secrets
 .env
+.env.*
+!.env.example
 *.pem
 *.key
 *.cert
+*.pfx
 
 # Database & SQLite files
 *.sqlite3
+*.sqlite
 *.db
-data/
+*.db-shm
+*.db-wal
+/data/*.sqlite3
+/data/*.db
 
 # Testing & Coverage
 .pytest_cache/
 .coverage
 htmlcov/
 .ruff_cache/
+.mypy_cache/
 
-# Storage & Uploads
-storage/
-evidence/
-downloads/
-certification_pack/
+# Storage & Uploads (runtime root directories only)
+/storage/
+/evidence/
+/downloads/
+/certification_pack/
 
 # IDE & OS
 .vscode/
 .idea/
 *.swp
 *~
+.DS_Store
+Thumbs.db
+desktop.ini
+
 # Node / Frontend
 node_modules/
 frontend/node_modules/
 frontend/dist/
-.DS_Store
-Thumbs.db
+.eslintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# General Logs
+*.log
+logs/
