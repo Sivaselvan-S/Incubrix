@@ -36,7 +36,7 @@ select = ["E", "F", "I", "B", "UP"]
 ignore = ["B008", "E501"]
 
 [tool.pytest.ini_options]
-minversion = "8.0"
+minversion = "7.0"
 addopts = "-ra -q --import-mode=importlib"
 testpaths = ["tests"]
 pythonpath = ["."]

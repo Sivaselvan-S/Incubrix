@@ -114,24 +114,79 @@ def import_catalogue_csv(
             surface = (row.get("surface") or "community").strip()
             category = (row.get("category") or "general").strip()
             language = (row.get("language") or "en").strip()
-            freq_days = int(row.get("frequency_cap_days", 7) or 7)
+            connector_key = (row.get("connector_key") or platform_key).strip()
 
-            self_promo = row.get("self_promo_allowed", "true").lower() in ("true", "1", "yes")
-            disclosure = row.get("disclosure_required", "false").lower() in ("true", "1", "yes")
+            # Parse frequency cap: support "1/7d" format, numeric days, or frequency_cap_days
+            freq_raw = row.get("frequency_cap") or row.get("frequency_cap_days") or "7"
+            if isinstance(freq_raw, str) and "/" in freq_raw:
+                try:
+                    parts = freq_raw.split("/")
+                    max_posts = int(parts[0])
+                    days_str = parts[1].rstrip("dD")
+                    freq_days = int(days_str)
+                    freq_cap = {"max": max_posts, "per_days": freq_days}
+                except Exception:
+                    freq_cap = {"max": 1, "per_days": 7}
+            else:
+                try:
+                    freq_days = int(freq_raw)
+                except Exception:
+                    freq_days = 7
+                freq_cap = {"max": 1, "per_days": freq_days}
+
+            self_promo = str(row.get("self_promo_allowed", "true")).lower() in ("true", "1", "yes")
+            disclosure = str(row.get("disclosure_required", "false")).lower() in ("true", "1", "yes")
+            automation = str(row.get("automation_allowed", "true")).lower() in ("true", "1", "yes")
+
+            # Parse audience tags
+            raw_tags = row.get("audience_tags", "")
+            if isinstance(raw_tags, list):
+                audience_tags = raw_tags
+            elif isinstance(raw_tags, str) and raw_tags.strip():
+                if ";" in raw_tags:
+                    audience_tags = [t.strip() for t in raw_tags.split(";") if t.strip()]
+                elif "," in raw_tags:
+                    audience_tags = [t.strip() for t in raw_tags.split(",") if t.strip()]
+                else:
+                    audience_tags = [raw_tags.strip()]
+            else:
+                audience_tags = []
+
+            # Parse estimated audience
+            raw_aud = row.get("est_audience")
+            try:
+                est_aud = int(raw_aud) if raw_aud is not None and str(raw_aud).strip().isdigit() else None
+            except Exception:
+                est_aud = None
+
+            # Parse relevance score
+            raw_rel = row.get("relevance_score") or row.get("relevance_score (1-5)") or 3.0
+            try:
+                rel_score = float(raw_rel)
+            except Exception:
+                rel_score = 3.0
 
             dest = DestinationModel(
                 name=row.get("name", "Unnamed Destination").strip(),
                 url=normalized_url,
                 platform_key=platform_key,
-                connector_key=platform_key,
+                connector_key=connector_key,
                 surface=surface,
                 category=category,
+                audience_tags=audience_tags,
                 language=language,
-                frequency_cap_json={"max": 1, "per_days": freq_days},
+                geo=row.get("geo"),
+                est_audience=est_aud,
+                rules_url=row.get("rules_url"),
+                frequency_cap_json=freq_cap,
                 self_promo_allowed=self_promo,
+                link_policy=row.get("link_policy", "none"),
                 disclosure_required=disclosure,
+                automation_allowed=automation,
+                relevance_score=rel_score,
+                relevance_reason=row.get("relevance_reason"),
                 status="active",
-                level="L0",
+                level=row.get("level", "L0"),
             )
             batch.append(dest)
             seen_urls_in_batch.add(normalized_url)

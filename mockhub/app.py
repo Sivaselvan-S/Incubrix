@@ -383,9 +383,18 @@ async def lemmy_delete_post(request: Request, x_chaos: str | None = Header(None,
     return {"post_view": {"post": item}}
 
 
+@app.get("/api/v3/site")
+async def lemmy_site():
+    return {"site_view": {"site": {"name": "Mock Lemmy Instance", "id": 1}}}
+
+
 # ------------------------------------------------------------------------------
 # Ghost Admin API Endpoints
 # ------------------------------------------------------------------------------
+@app.get("/ghost/api/admin/site")
+@app.get("/ghost/api/admin/site/")
+async def ghost_site():
+    return {"site": {"title": "Mock Ghost Instance", "version": "5.0"}}
 @app.post("/ghost/api/admin/posts")
 @app.post("/ghost/api/admin/posts/")
 async def ghost_create_post(

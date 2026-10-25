@@ -1,0 +1,85 @@
+{
+  "destination_id": "dest_cert_drift_01",
+  "destination_name": "Dev.to API Test",
+  "timestamp": "2026-10-25T11:54:01.850592+00:00",
+  "passed": false,
+  "reason": "Drift Canary detected field mismatch in devto.publish: [\"'url' is a required property\"]",
+  "total_seconds": 0.014,
+  "timings": {
+    "step_1_validate_ms": 0.0,
+    "step_2_publish_ms": 12.01
+  },
+  "steps": [
+    {
+      "step": "validate",
+      "passed": true,
+      "details": {
+        "ok": true,
+        "violations": []
+      }
+    },
+    {
+      "step": "publish",
+      "passed": true,
+      "details": {
+        "platform_post_id": "1002",
+        "live_url": "http://localhost:8010/devto/1002",
+        "status": "published",
+        "raw_response": {
+          "id": 1002,
+          "live_link": "http://localhost:8010/devto/1002",
+          "published": true
+        }
+      }
+    },
+    {
+      "step": "drift_canary",
+      "passed": false,
+      "fingerprint": "b4d13cde3ed7db78fba7f27cb8037c9fca7c7d3cd7113a2809065dbe7b30a823",
+      "drift_report": {
+        "code": "CERT_DRIFT_DETECTED",
+        "message": "Platform response schema drifted on 'devto.publish'.",
+        "errors": [
+          {
+            "message": "'url' is a required property",
+            "path": "",
+            "validator": "required"
+          }
+        ],
+        "missing_fields": [
+          "'url' is a required property"
+        ],
+        "observed_keys": [
+          "id",
+          "live_link",
+          "published"
+        ],
+        "schema_path": "schemas\\devto\\publish.json",
+        "expected_fingerprint": "DevtoPublishResponse",
+        "actual_fingerprint": "b4d13cde3ed7db78fba7f27cb8037c9fca7c7d3cd7113a2809065dbe7b30a823"
+      }
+    }
+  ],
+  "drift_report": {
+    "code": "CERT_DRIFT_DETECTED",
+    "message": "Platform response schema drifted on 'devto.publish'.",
+    "errors": [
+      {
+        "message": "'url' is a required property",
+        "path": "",
+        "validator": "required"
+      }
+    ],
+    "missing_fields": [
+      "'url' is a required property"
+    ],
+    "observed_keys": [
+      "id",
+      "live_link",
+      "published"
+    ],
+    "schema_path": "schemas\\devto\\publish.json",
+    "expected_fingerprint": "DevtoPublishResponse",
+    "actual_fingerprint": "b4d13cde3ed7db78fba7f27cb8037c9fca7c7d3cd7113a2809065dbe7b30a823"
+  }
+}

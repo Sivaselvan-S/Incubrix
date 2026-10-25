@@ -1,0 +1,80 @@
+{
+  "destination_id": "dest_cert_webhook_01",
+  "destination_name": "Partner Signed HMAC Webhook",
+  "timestamp": "2026-10-25T11:48:49.827172+00:00",
+  "passed": false,
+  "reason": "Drift Canary detected field mismatch in webhook_hmac.publish: [\"'event_id' is a required property\"]",
+  "total_seconds": 0.018,
+  "timings": {
+    "step_1_validate_ms": 0.0,
+    "step_2_publish_ms": 13.01
+  },
+  "steps": [
+    {
+      "step": "validate",
+      "passed": true,
+      "details": {
+        "ok": true,
+        "violations": []
+      }
+    },
+    {
+      "step": "publish",
+      "passed": true,
+      "details": {
+        "platform_post_id": "evt_1005",
+        "live_url": "http://localhost:8010/partner/webhook#evt_1005",
+        "status": "published"
+      }
+    },
+    {
+      "step": "drift_canary",
+      "passed": false,
+      "fingerprint": "48bf88cdeff7cd214f6d7b55e92f8c2c35227de5462ba0e0df35f7561f6bb959",
+      "drift_report": {
+        "code": "CERT_DRIFT_DETECTED",
+        "message": "Platform response schema drifted on 'webhook_hmac.publish'.",
+        "errors": [
+          {
+            "message": "'event_id' is a required property",
+            "path": "",
+            "validator": "required"
+          }
+        ],
+        "missing_fields": [
+          "'event_id' is a required property"
+        ],
+        "observed_keys": [
+          "platform_post_id",
+          "live_url",
+          "status"
+        ],
+        "schema_path": "schemas\\webhook_hmac\\publish.json",
+        "expected_fingerprint": "WebhookHmacPublishResponse",
+        "actual_fingerprint": "48bf88cdeff7cd214f6d7b55e92f8c2c35227de5462ba0e0df35f7561f6bb959"
+      }
+    }
+  ],
+  "drift_report": {
+    "code": "CERT_DRIFT_DETECTED",
+    "message": "Platform response schema drifted on 'webhook_hmac.publish'.",
+    "errors": [
+      {
+        "message": "'event_id' is a required property",
+        "path": "",
+        "validator": "required"
+      }
+    ],
+    "missing_fields": [
+      "'event_id' is a required property"
+    ],
+    "observed_keys": [
+      "platform_post_id",
+      "live_url",
+      "status"
+    ],
+    "schema_path": "schemas\\webhook_hmac\\publish.json",
+    "expected_fingerprint": "WebhookHmacPublishResponse",
+    "actual_fingerprint": "48bf88cdeff7cd214f6d7b55e92f8c2c35227de5462ba0e0df35f7561f6bb959"
+  }
+}

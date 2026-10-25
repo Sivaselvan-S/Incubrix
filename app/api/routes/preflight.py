@@ -59,9 +59,12 @@ def evaluate_preflight(
     passport = dest.passport
     passport_expired = False
     if passport and passport.expires_at:
-        from datetime import datetime
+        from datetime import UTC, datetime
 
-        if passport.expires_at < datetime.now(UTC):
+        exp = passport.expires_at
+        if exp.tzinfo is None:
+            exp = exp.replace(tzinfo=UTC)
+        if exp < datetime.now(UTC):
             passport_expired = True
 
     rule_ctx = DestinationRuleContext(

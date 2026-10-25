@@ -1,0 +1,7 @@
+{
+  "title": "Optimizing High-Throughput Video Feeds for Connected TV Syndication",
+  "body": "Connected TV aggregators and modern video streaming networks require strict adherence to Media RSS (MRSS) 2.0 specifications. By leveraging declarative metadata tags, enclosures, and in-place GUID reconciliation, media creators can distribute video content to decentralized endpoints with zero duplicate records.",
+  "destination_id": "dest_devto_001",
+  "tags": ["video", "ctv", "streaming", "media", "ai"],
+  "canonical_url": "https://incubrix.io/media/ctv-syndication-standards"
+}

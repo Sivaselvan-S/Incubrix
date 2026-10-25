@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class VerdictEnum(StrEnum):
@@ -79,6 +79,7 @@ class CourtVerdict(BaseModel):
     """Deterministic verdict output from Preflight Court."""
 
     verdict: VerdictEnum
+    action: str | None = None
     rule_id: str
     code: str | None = None
     reason: str
@@ -86,3 +87,9 @@ class CourtVerdict(BaseModel):
     earliest_allowed_at: datetime | None = None
     warnings: list[str] = Field(default_factory=list)
     violations: list[FieldViolation] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def sync_action(self):
+        if not self.action and self.verdict:
+            self.action = self.verdict.value if hasattr(self.verdict, "value") else str(self.verdict)
+        return self

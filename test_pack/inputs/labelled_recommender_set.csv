@@ -1,0 +1,11 @@
+title,body,category,tags,expected_categories
+Async Python with FastAPI,Deep dive into async await in Python 3.12,python,"python,asyncio,backend","python,engineering,technology,opensource"
+Scaling Kubernetes Clusters,Best practices for container orchestration and Docker,devops,"kubernetes,docker,cloud","devops,cloud,technology,engineering"
+Microservice Database Patterns,ACID transactions vs eventual consistency in SQL,engineering,"databases,sql,backend","engineering,technology,python"
+Modern Unreal Engine 5 Shaders,Real-time rendering techniques in game development,gaming,"gamedev,unreal,graphics",gaming
+Decentralized Social Networks,ActivityPub federation on Linux and open source,opensource,"linux,git,opensource","opensource,technology,python"
+Algorithmic Stock Trading Systems,High frequency trading and fintech architecture,finance,"fintech,stocks,investing",finance
+Building Clean REST APIs with Python,Architectural patterns and unit testing,python,"python,api,backend","python,engineering,technology"
+Docker Container Security Hardening,Rootless containers and CI/CD security scanning,devops,"docker,ci-cd,kubernetes","devops,cloud,technology"
+PostgreSQL Indexing Strategies,B-tree vs GIN indexes for fast queries,engineering,"databases,sql,performance","engineering,python,technology"
+Multiplayer Game Networking in Unity,Predictive physics in competitive esports,gaming,"gamedev,unity,esports",gaming

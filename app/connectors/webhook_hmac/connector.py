@@ -91,6 +91,7 @@ class WebhookHmacConnector(BaseConnector):
             "platform_post_id": event_id,
             "live_url": f"{target_url}#{event_id}",
             "status": "published",
+            "raw_response": data,
         }
 
     def get_status(

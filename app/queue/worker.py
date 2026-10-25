@@ -269,10 +269,13 @@ def _process_single_job_internal(db: Session, job_id: str) -> None:
 
 def run_worker_loop(single_run: bool = False, max_jobs: int | None = None) -> None:
     """Continuously runs the background job claim loop."""
+    from app.connectors.init_connectors import register_all_connectors
+
+    register_all_connectors()
     settings = get_settings()
     processed_count = 0
 
-    logger.info("Background job worker loop started.")
+    logger.info("Background job worker loop started with all connectors registered.")
     while True:
         with SessionLocal() as db:
             job = claim_next_job(db)

@@ -1,0 +1,84 @@
+{
+  "destination_id": "dest_cert_webhook_01",
+  "destination_name": "Partner Signed HMAC Webhook",
+  "connector_key": "webhook_hmac",
+  "timestamp": "2026-10-25T11:49:37.506298+00:00",
+  "total_seconds": 0.013,
+  "timings": {
+    "step_1_validate_ms": 0.0,
+    "step_2_publish_ms": 12.61,
+    "step_4_confirm_live_ms": 0.0,
+    "step_6_delete_ms": 0.0,
+    "step_7_confirm_deleted_ms": 0.0
+  },
+  "steps": [
+    {
+      "step": "validate",
+      "passed": true,
+      "details": {
+        "ok": true,
+        "violations": []
+      }
+    },
+    {
+      "step": "publish",
+      "passed": true,
+      "details": {
+        "platform_post_id": "evt_1005",
+        "live_url": "http://localhost:8010/partner/webhook#evt_1005",
+        "status": "published",
+        "raw_response": {
+          "status": "received",
+          "event_id": "evt_1005"
+        }
+      }
+    },
+    {
+      "step": "drift_canary",
+      "passed": true,
+      "fingerprint": "01f994ebec04633b422b3d2f544cd4432a6dd6c7225ca96d11f9aeda31347327",
+      "drift_report": null
+    },
+    {
+      "step": "confirm_live",
+      "passed": true,
+      "details": {
+        "status": "delivered",
+        "live_url": "http://localhost:8010/partner/webhook#evt_1005"
+      }
+    },
+    {
+      "step": "read_status",
+      "passed": true,
+      "status": "delivered"
+    },
+    {
+      "step": "delete",
+      "passed": true,
+      "details": {
+        "deleted": true
+      }
+    },
+    {
+      "step": "confirm_deleted",
+      "passed": false,
+      "details": {
+        "status": "delivered",
+        "live_url": "http://localhost:8010/partner/webhook#evt_1005"
+      }
+    }
+  ],
+  "schema_fingerprint": "01f994ebec04633b422b3d2f544cd4432a6dd6c7225ca96d11f9aeda31347327",
+  "publication_result": {
+    "platform_post_id": "evt_1005",
+    "live_url": "http://localhost:8010/partner/webhook#evt_1005",
+    "status": "published",
+    "raw_response": {
+      "status": "received",
+      "event_id": "evt_1005"
+    }
+  },
+  "screenshot_placeholder": "Evidence snapshot captured for Partner Signed HMAC Webhook",
+  "screenshot_url": "/storage/evidence/certification_pack/webhook_hmac/dest_cert_webhook_01/screenshot.svg",
+  "screenshot_file": "screenshot.svg"
+}
